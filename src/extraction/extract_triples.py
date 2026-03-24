@@ -1,6 +1,7 @@
 from gliner2 import GLiNER2
 from pathlib import Path
 import json
+import os
 
 MODEL_NAME = "fastino/gliner2-base-v1"
 
@@ -37,6 +38,8 @@ TYPE_CONSTRAINTS = {
 CACHE_DIR = Path("data/cache")
 TRIPLES_CACHE = CACHE_DIR / "triples.json"
 
+# Thêm vào extract_triples_batch
+os.environ['OMP_NUM_THREADS'] = '8'  # Dùng 8 CPU cores
 
 def build_schema(extractor, relation_schema: dict):
     """Build GLiNER2 schema từ dynamic relation dict."""
@@ -47,8 +50,10 @@ def build_schema(extractor, relation_schema: dict):
     )
 
 
-def extract_information(text: str, extractor, schema) -> tuple[list, list]:
-    """Extract entities + typed triples từ 1 passage."""
+def extract_information(text: str, extractor, schema) -> tuple[list, list, int]:
+    """Extract entities + typed triples từ 1 passage.
+    Returns: entities, triples, filtered_count
+    """
     results = extractor.extract(text, schema, include_confidence=True)
 
     entities = []
@@ -63,15 +68,14 @@ def extract_information(text: str, extractor, schema) -> tuple[list, list]:
     entity_type = {e["text"]: e["type"] for e in entities}
 
     triples = []
+    filtered_count = 0
     for rel, pairs in results.get("relation_extraction", {}).items():
         for pair in pairs:
             if isinstance(pair, (list, tuple)):
                 head, tail, score = pair[0], pair[1], None
             elif isinstance(pair, dict):
-                # ← THIẾU những dòng này:
                 head = pair["head"]["text"] if isinstance(pair["head"], dict) else pair["head"]
                 tail = pair["tail"]["text"] if isinstance(pair["tail"], dict) else pair["tail"]
-                # ← THÊM phía trên rồi mới lấy score
                 head_score = pair["head"].get("confidence", 1.0) if isinstance(pair["head"], dict) else 1.0
                 tail_score = pair["tail"].get("confidence", 1.0) if isinstance(pair["tail"], dict) else 1.0
                 score = min(head_score, tail_score)
@@ -81,23 +85,26 @@ def extract_information(text: str, extractor, schema) -> tuple[list, list]:
             # Type constraint filtering
             if rel in TYPE_CONSTRAINTS:
                 expected_subj, expected_objs = TYPE_CONSTRAINTS[rel]
+                head_type = entity_type.get(head, "unknown")  # Default "unknown"
+                tail_type = entity_type.get(tail, "unknown")
                 
-                # Nếu subject type sai, bỏ qua
-                if entity_type.get(head) != expected_subj:
+                # Chỉ filter nếu type khác với expected, bỏ qua nếu unknown
+                if head_type != "unknown" and head_type != expected_subj:
+                    filtered_count += 1
                     continue
                 
-                # Nếu object type sai, bỏ qua
-                if entity_type.get(tail) not in expected_objs:
+                if tail_type != "unknown" and tail_type not in expected_objs:
+                    filtered_count += 1
                     continue
 
             triples.append({"subject": head, "relation": rel, "object": tail, "score": score})
 
-    return entities, triples
+    return entities, triples, filtered_count
 
 
 def extract_triples_batch(passages: list[str],
                            relation_schema: dict = None,
-                           batch_size: int = 16,
+                           batch_size: int = 32,
                            skip_cache: bool = True) -> list[dict]:
     """
     Chạy Pass 2 trên toàn corpus.
@@ -115,24 +122,31 @@ def extract_triples_batch(passages: list[str],
 
     results = []
     total = len(passages)
+    total_filtered = 0
 
     for i in range(0, total, batch_size):
         batch = passages[i : i + batch_size]
+        batch_filtered = 0
+        
         for passage in batch:
             try:
-                entities, triples = extract_information(passage, extractor, schema)
+                entities, triples, filtered = extract_information(passage, extractor, schema)
                 results.append({"passage": passage, "entities": entities, "triples": triples})
+                batch_filtered += filtered
+                total_filtered += filtered
             except Exception as e:
                 results.append({"passage": passage, "entities": [], "triples": []})
 
-        if (i // batch_size) % 5 == 0:
-            print(f"  [{i + len(batch)}/{total}] {sum(len(r['triples']) for r in results)} triples so far")
+        if (i // batch_size) % 1 == 0:
+            total_triples = sum(len(r['triples']) for r in results)
+            print(f"  [{i + len(batch)}/{total}] {total_triples} triples so far (bỏ {total_filtered} vì constraints)")
 
     # Cache kết quả
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     with open(TRIPLES_CACHE, "w") as f:
         json.dump(results, f)
-    print(f"  Done. {sum(len(r['triples']) for r in results)} total triples from {len(results)} passages")
+    total_kept = sum(len(r['triples']) for r in results)
+    print(f"  Done. {total_kept} triples giữ lại, {total_filtered} bỏ đi từ {len(results)} passages")
     return results
 
 
