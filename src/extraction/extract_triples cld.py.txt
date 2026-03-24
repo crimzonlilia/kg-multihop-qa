@@ -1,0 +1,86 @@
+from gliner2 import GLiNER2
+
+# Dùng model gliner2 thật, không phải knowledgator nữa
+extractor = GLiNER2.from_pretrained("fastino/gliner2-large-v1")
+
+# Schema ontology từ slide
+RELATION_SCHEMA = {
+    "born_in":     "Person was born in a location or country",
+    "died_in":     "Person died in a location or country",
+    "nationality": "Person holds citizenship of a country",
+    "occupation":  "Person has a job or role",
+    "founded_by":  "Organization was founded by a person",
+    "located_in":  "Organization or place is located in a location",
+    "part_of":     "Organization is part of another organization",
+    "occurred_in": "Event occurred in a location",
+    "educated_at": "Person studied at an organization",
+    "worked_at":   "Person worked at an organization",
+    "member_of":   "Person is a member of an organization",
+}
+
+ENTITY_LABELS = ["person", "location", "organization", "country", "role", "event"]
+
+
+def extract_entities(text):
+    result = extractor.extract_entities(
+        text,
+        ENTITY_LABELS,
+        include_confidence=True
+    )
+    # Flatten về list of dicts
+    entities = []
+    for label, items in result.get("entities", {}).items():
+        for item in items:
+            entities.append({
+                "text":  item["text"],
+                "label": label,
+                "score": item["confidence"]
+            })
+    return entities
+
+
+def extract_triples(text, threshold=0.5):
+    schema = extractor.create_schema().relations(RELATION_SCHEMA)
+    results = extractor.extract(text, schema, include_confidence=True)
+
+    triples = []
+    re_results = results.get("relation_extraction", {})
+
+    for relation, pairs in re_results.items():
+        for pair in pairs:
+            # Handle cả hai format: tuple và dict
+            if isinstance(pair, (list, tuple)):
+                subj, obj = pair[0], pair[1]
+                score = None
+            elif isinstance(pair, dict):
+                subj  = pair["head"]["text"] if isinstance(pair["head"], dict) else pair["head"]
+                obj   = pair["tail"]["text"] if isinstance(pair["tail"], dict) else pair["tail"]
+                score = pair["head"].get("confidence") if isinstance(pair["head"], dict) else None
+            else:
+                continue
+
+            triples.append({
+                "subject":  subj,
+                "relation": relation,
+                "object":   obj,
+                "score":    score
+            })
+
+    return triples
+
+
+if __name__ == "__main__":
+    text = "Elon Musk was born in Pretoria, South Africa. He founded SpaceX."
+
+    print("=== Entities ===")
+    for e in extract_entities(text):
+        print(f"  {e['text']} → {e['label']} ({e['score']:.2f})")
+
+    print("\n=== Triples ===")
+    triples = extract_triples(text)
+    if triples:
+        for t in triples:
+            score_str = f" score={t['score']:.2f}" if t["score"] else ""
+            print(f"  ({t['subject']}, {t['relation']}, {t['object']}){score_str}")
+    else:
+        print("  Không có triple nào.")
