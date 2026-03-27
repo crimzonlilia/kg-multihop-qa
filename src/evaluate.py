@@ -5,9 +5,10 @@ sys.path.insert(0, ".")
 
 from src.data.musique_loader import load_musique
 from src.graph.build_graph import load_graph, normalize
-from src.retrieval.pagerank import personalized_pagerank, get_subgraph
+from src.retrieval.pagerank import personalized_pagerank, personalized_pagerank_fast, get_subgraph
 from src.qa import triples_to_text
-
+import nltk
+import networkx as nx
 
 def normalize_answer(s: str) -> str:
     s = s.lower().strip()
@@ -18,14 +19,89 @@ def normalize_answer(s: str) -> str:
 
 
 def extract_query_entities_from_graph(G, question):
-    q_lower = question.lower()
-    matched = [n for n in G.nodes() if n.lower() in q_lower.split() and len(n) > 3]
+    """
+    Extract entities from question using:
+    1. Capitalized words (proper nouns)
+    2. Ignore stop words
+    3. Match to graph nodes
+    """
+    try:
+        nltk.data.find('tokenizers/punkt')
+    except LookupError:
+        nltk.download('punkt')
+    
+    stop_words = {'who', 'what', 'where', 'when', 'why', 'how', 'is', 'are', 
+                  'the', 'a', 'an', 'and', 'or', 'of', 'in', 'at', 'by', 'for',
+                  'founded', 'distributed', 'spouse', 'owner', 'entity', 'performer'}
+    
+    # Extract capitalized words (proper nouns)
+    words = question.split()
+    candidates = []
+    
+    for word in words:
+        # Clean punctuation
+        clean_word = re.sub(r'[^\w]', '', word)
+        
+        # Check if capitalized and not stop word
+        if clean_word and clean_word[0].isupper() and clean_word.lower() not in stop_words and len(clean_word) > 2:
+            candidates.append(clean_word.lower())
+    
+    # Match to graph nodes
+    matched = [n for n in G.nodes() if n.lower() in candidates]
+    
+    # Fallback: nếu không tìm được, try longer substrings từ question
+    if not matched:
+        # Split question by common delimiters
+        phrases = re.split(r'\s+(?:of|in|is|the)\s+', question, flags=re.IGNORECASE)
+        for phrase in phrases:
+            phrase = phrase.strip().rstrip('?').lower()
+            if len(phrase) > 6:  # Longer phrases likely to be entities
+                # Try fuzzy match
+                for node in G.nodes():
+                    if node in phrase and len(node.split()) > 1:  # Multi-word entities
+                        matched.append(node)
+                if matched:
+                    break
+    
     return sorted(matched, key=len, reverse=True)[:5]
 
 
 if __name__ == "__main__":
-    samples = load_musique("dev", max_samples=200)  # All 2417 samples
+    samples = load_musique("dev", max_samples=10)  # All 2417 samples
     G = load_graph("data/processed/kg.pkl")
+
+    # DEBUG: Check first 3 samples
+    for sample_idx in range(min(3, len(samples))):
+        sample = samples[sample_idx]
+        question = sample["question"]
+        gold = sample["answer"]
+        
+        print(f"\n{'='*60}")
+        print(f"Sample {sample_idx+1}: {question}")
+        print(f"Expected answer: {gold}")
+        
+        # Query entity extraction
+        query_entities = extract_query_entities_from_graph(G, question)
+        print(f"Query entities extracted: {query_entities}")
+        
+        if not query_entities:
+            print("❌ No query entities found!")
+            continue
+        
+        # Check if answer is in graph
+        answer_norm = normalize(gold)
+        print(f"Normalized answer: {answer_norm}")
+        print(f"Answer in graph: {answer_norm in G}")
+        
+        # Run retrieval
+        ranked = personalized_pagerank_fast(G, query_entities, top_k=10, neighborhood_hops=3)
+        print(f"\nTop-10 results:")
+        for rank, (node, score) in enumerate(ranked, 1):
+            is_match = normalize(node) == answer_norm
+            marker = "✓ MATCH" if is_match else ""
+            print(f"  {rank}. {node} ({score:.4f}) {marker}")
+        
+        print(f"{'='*60}")
 
     # Tracking variables
     hit_at_10 = []
@@ -48,7 +124,7 @@ if __name__ == "__main__":
             skipped += 1
             continue
 
-        ranked = personalized_pagerank(G, query_entities, top_k=10)
+        ranked = personalized_pagerank_fast(G, query_entities, top_k=10, neighborhood_hops=3)
         ranked_nodes = [normalize(n) for n, _ in ranked]
         
         # Check Hit@10

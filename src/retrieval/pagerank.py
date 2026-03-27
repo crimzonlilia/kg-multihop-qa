@@ -6,52 +6,40 @@ import networkx as nx
 from src.graph.build_graph import load_graph, normalize
 
 
-def personalized_pagerank(G, query_entities, top_k=10, alpha=0.85, entity_type_filter=None):
+def personalized_pagerank(G, query_entities, top_k=10, alpha=0.85, entity_type_filter=None, max_iter=20, tol=0.01):
     """
     Personalized PageRank cho graph retrieval
-
+    
     Args:
-        G: networkx graph
-        query_entities: list[str]
-        top_k: số node trả về
-        alpha: damping factor
-        entity_type_filter: list of types to prioritize (e.g., ['person', 'work'])
-                        sẽ loại bỏ generic types như 'occupation', 'location'
-
-    Returns:
-        List[(node, score)]
+        max_iter: Giảm từ 100 → 20 iterations
+        tol: Tolerance - 0.01 thay vì 1e-6 (hội tụ nhanh hơn)
     """
-
+    
     if G.number_of_nodes() == 0:
         return []
 
-    # normalize query
     query_nodes = [normalize(e) for e in query_entities]
-
-    # giữ node tồn tại
     valid_nodes = [n for n in query_nodes if n in G]
 
     if not valid_nodes:
-        print(f"Không tìm thấy entity trong graph: {query_entities}")
         return []
 
-    # personalization vector
     personalization = {node: 0.0 for node in G.nodes()}
     for node in valid_nodes:
         personalization[node] = 1.0 / len(valid_nodes)
 
-    # chạy PageRank
+    # OPTIMIZE: Giảm iterations + tolerance
     pr_scores = nx.pagerank(
         G,
         alpha=alpha,
         personalization=personalization,
-        weight="weight"
+        weight="weight",
+        max_iter=max_iter,   # ← THÊM
+        tol=tol              # ← THÊM
     )
 
-    # sort
     ranked = sorted(pr_scores.items(), key=lambda x: x[1], reverse=True)
 
-    # Filter base trên entity_type nếu có
     if entity_type_filter:
         filtered = [
             (n, s) for n, s in ranked 
@@ -59,6 +47,66 @@ def personalized_pagerank(G, query_entities, top_k=10, alpha=0.85, entity_type_f
         ]
         return filtered[:top_k]
     
+    return ranked[:top_k]
+
+
+def personalized_pagerank_fast(G, query_entities, top_k=10, alpha=0.85, neighborhood_hops=3):
+    """
+    Extract subgraph + seed neighbors of query entities
+    """
+    query_nodes = [normalize(e) for e in query_entities]
+    valid_nodes = [n for n in query_nodes if n in G]
+    
+    if not valid_nodes:
+        return []
+    
+    # Get K-hop neighborhood
+    nodes = set(valid_nodes)
+    frontier = set(valid_nodes)
+    
+    for _ in range(neighborhood_hops):
+        next_frontier = set()
+        for n in frontier:
+            next_frontier.update(G.successors(n))
+            next_frontier.update(G.predecessors(n))
+        nodes.update(next_frontier)
+        frontier = next_frontier
+    
+    subgraph = G.subgraph(nodes)
+    
+    # FIXED: Seed query entities + their direct neighbors
+    personalization = {node: 0.0 for node in subgraph.nodes()}
+    
+    # Seed query nodes (high weight)
+    base_score = 1.0 / len(valid_nodes)
+    for node in valid_nodes:
+        if node in subgraph:
+            personalization[node] = base_score
+    
+    # Also seed neighbors of query nodes (lower weight)
+    neighbor_boost = 0.3 * base_score
+    for node in valid_nodes:
+        if node in G:
+            # Get 1-hop neighbors
+            for neighbor in list(G.successors(node)) + list(G.predecessors(node)):
+                if neighbor in personalization:
+                    personalization[neighbor] += neighbor_boost
+    
+    # Normalize
+    total = sum(personalization.values())
+    if total > 0:
+        personalization = {k: v/total for k, v in personalization.items()}
+    
+    pr_scores = nx.pagerank(
+        subgraph,
+        alpha=alpha,
+        personalization=personalization,
+        weight="weight",
+        max_iter=20,
+        tol=0.01
+    )
+    
+    ranked = sorted(pr_scores.items(), key=lambda x: x[1], reverse=True)
     return ranked[:top_k]
 
 

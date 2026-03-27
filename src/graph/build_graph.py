@@ -122,11 +122,11 @@ def build_graph(triples, entities=None, score_threshold=0.0, add_reverse_edges=T
                 cooccur_weight = 0.3  # Thấp hơn relation edges
                 
                 # Add bidirectional edges
-                if not G.has_edge(e1, e2):
-                    G.add_edge(e1, e2,
-                        relations=[{"type": "co_occurs", "label": "appears with"}],
-                        weight=cooccur_weight
-                    )
+                # if not G.has_edge(e1, e2):
+                #     G.add_edge(e1, e2,
+                #         relations=[{"type": "co_occurs", "label": "appears with"}],
+                #         weight=cooccur_weight
+                #     )
                 if not G.has_edge(e2, e1):
                     G.add_edge(e2, e1,
                         relations=[{"type": "co_occurs", "label": "appears with"}],
@@ -240,6 +240,63 @@ def normalize_relation_label(relation: str) -> str:
 
 
 # ======================
+# ENTITY LINKING (NEW)
+# ======================
+def link_similar_entities(G, threshold=0.5):
+    """
+    More aggressive entity linking
+    """
+    from collections import defaultdict
+    
+    nodes = list(G.nodes())
+    token_groups = defaultdict(list)
+    
+    # Group by first token
+    for node in nodes:
+        tokens = node.split()
+        if tokens and len(tokens[0]) > 2:
+            token_groups[tokens[0]].append(node)
+    
+    links_added = 0
+    checked_pairs = set()
+    
+    for first_token, candidates in token_groups.items():
+        for i in range(len(candidates)):
+            for j in range(i + 1, len(candidates)):
+                n1, n2 = candidates[i], candidates[j]
+                pair = tuple(sorted([n1, n2]))
+                
+                if pair in checked_pairs:
+                    continue
+                checked_pairs.add(pair)
+                
+                if G.has_edge(n1, n2) or G.has_edge(n2, n1):
+                    continue
+                
+                # Similarity check
+                tokens1 = set(n1.split())
+                tokens2 = set(n2.split())
+                
+                overlap = len(tokens1 & tokens2)
+                union = len(tokens1 | tokens2)
+                jaccard = overlap / union if union > 0 else 0
+                
+                # Prefix match: "Einstein" in "Albert Einstein"
+                prefix_match = n1 in n2 or n2 in n1
+                
+                if jaccard >= threshold or prefix_match or jaccard >= 0.3:
+                    weight = 0.2 if jaccard >= 0.5 else 0.1
+                    G.add_edge(n1, n2, 
+                        relations=[{"type": "similar_to", "label": "similar entity"}],
+                        weight=weight
+                    )
+                    links_added += 1
+    
+    print(f"✓ Entity linking added {links_added} bridge edges")
+    return G
+
+
+# ======================
 # DEBUG
 # ======================
 if __name__ == "__main__":
@@ -259,14 +316,16 @@ if __name__ == "__main__":
     print(f"✓ Got {len(passages)} unique passages")
 
     print("\nExtracting triples from all passages...")
-    results = extract_triples_batch(passages, relation_schema=DEFAULT_RELATION_SCHEMA, skip_cache=True)
+    results = extract_triples_batch(passages, relation_schema=DEFAULT_RELATION_SCHEMA, skip_cache=False)
     print(f"✓ Extracted from {len(results)} passages")
 
     print("\nBuilding graphs...")
     graphs = []
     for i, result in enumerate(results):
         if result["triples"]:
-            G = build_graph(result["triples"], result["entities"], add_reverse_edges=True)  # ← Thêm này
+            G = build_graph(result["triples"], result["entities"], 
+               add_reverse_edges=False,  # ← Bỏ
+               add_cooccurrence_edges=True)
             graphs.append(G)
         
         if (i + 1) % 20 == 0:
@@ -274,6 +333,9 @@ if __name__ == "__main__":
 
     print(f"\nMerging {len(graphs)} graphs...")
     merged_graph = merge_graphs(graphs)
+
+    print("\nLinking similar entities...")  # ← THÊM CÁI NÀY
+    merged_graph = link_similar_entities(merged_graph, threshold=0.8)
 
     print("\nFinal graph statistics:")
     graph_stats(merged_graph)
