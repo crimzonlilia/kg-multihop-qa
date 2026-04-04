@@ -18,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
 
 from src.data.musique_loader import load_musique, get_all_passages
 from src.extraction.relation_discovery import run_discovery
-from src.extraction.extract_triples import extract_triples_batch, build_schema, get_extractor, clear_extractor_cache
+from src.extraction.extract_triples import extract_triples_batch_dynamic, extract_triples_batch, build_schema, get_extractor, clear_extractor_cache
 from src.graph.build_graph import build_graph, save_graph, graph_stats
 from gliner2 import GLiNER2
 import time
@@ -29,7 +29,7 @@ BACKUP_PATH = "data/processed/kg.pkl.backup"
 PROGRESS_FILE = Path("data/cache/progress.json")
 
 # Memory optimization
-BATCH_SIZE = 30  # Process passages in batches to avoid memory spike
+BATCH_SIZE = 4000  # GPU with fp16: can handle 4x larger batches (RTX 2060 6GB)
 ENABLE_GC = True  # Force garbage collection between batches
 
 def get_memory_usage():
@@ -105,11 +105,13 @@ def process_passages_in_batches(passages, relation_schema, extractor, batch_size
         
         print(f"   [{batch_num}/{total_batches}] Processing {len(batch)} passages... ", end='', flush=True)
         
-        # ← Extract with incremental cache save (saves after each batch)
-        batch_results = extract_triples_batch(
+        # ← Extract with dynamic schema grouping (optimized batch processing)
+        batch_results = extract_triples_batch_dynamic(
             batch, 
             relation_schema=relation_schema, 
             extractor=extractor,
+            batch_size=min(64, len(batch)),  # Smaller batch size for dynamic (embeddings per batch)
+            k=8,  # Select top-8 relations per passage
             skip_cache=True,  # Skip loading old cache within batch
             save_cache=True   # ← Save incrementally after each batch
         )
@@ -168,7 +170,7 @@ def main(graph_only=False):
     else:
         # Load data
         print(f"\n📚 Loading data...")
-        QUICK_TEST = True
+        QUICK_TEST = False  # ← Set to False for FULL dataset (~15-30 min)
         max_samples = 200 if QUICK_TEST else None
         
         start = time.time()

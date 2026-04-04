@@ -1,370 +1,79 @@
-from gliner2 import GLiNER2
-from pathlib import Path
-import json
-import os
-import logging
-from datetime import datetime
+"""
+Legacy wrapper for backward compatibility.
+Import from modules instead.
+"""
 
-# Setup logging
+import logging
+
+# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-MODEL_NAME = "fastino/gliner2-base-v1"
+# Import and re-export public API from modules
+from . import (
+    get_extractor,
+    get_embedder,
+    clear_model_cache,
+    DEFAULT_RELATION_SCHEMA,
+    TYPE_CONSTRAINTS,
+    ENTITY_LABELS,
+    build_schema,
+    get_dynamic_schemas_grouped,
+    extract_triples_batch,
+    deduplicate_triples,
+)
 
-ENTITY_LABELS = ["person", "organization", "location", "event", "role"]
+# For backward compatibility: additional exports
+from .extract_core import (
+    normalize_entity_text,
+    filter_triple,
+    extract_entities_from_batch,
+    extract_relations_from_batch,
+)
 
-DEFAULT_RELATION_SCHEMA = {
-    "born_in":     "Person was born in a location",
-    "died_in":     "Person died in a location",
-    "nationality": "Person holds citizenship of a country",
-    "occupation":  "Person has a job role",
-    "founded_by":  "Organization was founded by a person",
-    "located_in":  "Entity located in a place",
-    "part_of":     "Organization is part of another organization",
-    "occurred_in": "Event occurred in a location",
-    "educated_at": "Person studied at an organization",
-    "worked_at":   "Person worked at an organization",
-    "member_of":   "Person is member of an organization",
-    "spouse":      "Person is spouse of another person",
-    "sibling":     "Person is sibling of another person",
-    "parent_of":   "Person is parent of another person",
-    "child_of":    "Person is child of another person",
-    "distributed_by": "Work was distributed by an organization",
-    "directed_by": "Work was directed by a person",
-    "written_by":  "Work was written by a person",
-    "produced_by": "Work was produced by a person",
-    "starred_in":  "Person starred in a work",
-    "performed_in": "Person performed in a work",
-    "owner_of":    "Organization owns something",
-    "owned_by":    "Entity is owned by an organization",
-    "capital_of":  "Location is capital of a country",
-}
+__all__ = [
+    "get_extractor",
+    "get_embedder",
+    "clear_model_cache",
+    "DEFAULT_RELATION_SCHEMA",
+    "TYPE_CONSTRAINTS",
+    "ENTITY_LABELS",
+    "build_schema",
+    "get_dynamic_schemas_grouped",
+    "extract_triples_batch",
+    "deduplicate_triples",
+    "normalize_entity_text",
+    "filter_triple",
+    "extract_entities_from_batch",
+    "extract_relations_from_batch",
+]
 
-TYPE_CONSTRAINTS = {
-    "born_in":     ("person",       ["location"]),
-    "died_in":     ("person",       ["location"]),
-    "nationality": ("person",       ["location"]),
-    "occupation":  ("person",       ["role"]),
-    "founded_by":  ("organization", ["person"]),
-    "located_in":  ("organization", ["location"]),
-    "part_of":     ("organization", ["organization"]),
-    "occurred_in": ("event",        ["location"]),
-    "educated_at": ("person",       ["organization"]),
-    "worked_at":   ("person",       ["organization"]),
-    "member_of":   ("person",       ["organization"]),
-    "spouse":      ("person",       ["person"]),
-    "sibling":     ("person",       ["person"]),
-    "parent_of":   ("person",       ["person"]),
-    "child_of":    ("person",       ["person"]),
-    "distributed_by": (None,        None),  # Allow any entity type
-    "directed_by": (None,           None),
-    "written_by":  (None,           None),
-    "produced_by": (None,           None),
-    "starred_in":  ("person",       None),
-    "performed_in": ("person",      None),
-    "owner_of":    ("organization", None),
-    "owned_by":    (None,           ["organization"]),
-    "capital_of":  ("location",     ["location"]),
-}
-
-CACHE_DIR = Path("data/cache")
-TRIPLES_CACHE = CACHE_DIR / "triples.json"
-CONFIDENCE_MIN = 0.5  # ← Ngưỡng confidence
-
-# Entity filtering - discard generic/vague subjects that don't add info
-GENERIC_ENTITIES = {
-    'he', 'she', 'it', 'they', 'them', 'we', 'us', 'i', 'me', 'you',
-    'one', 'this', 'that', 'these', 'those', 'the', 'a', 'an',
-    'other', 'another', 'some', 'any', 'all', 'each', 'every',
-    'person', 'people', 'thing', 'things', 'stuff', 'work'
-}
-
-MIN_ENTITY_LENGTH = 3  # Filter very short entities (like "EK", "GE", "V")
-
-os.environ['OMP_NUM_THREADS'] = '8'  # Dùng 8 CPU cores
-
-# ← SINGLETON MODEL CACHE - Load once, reuse everywhere
-_EXTRACTOR_CACHE = None
-
-def get_extractor(model_name: str = MODEL_NAME):
-    """Get or load GLiNER2 model (singleton pattern)."""
-    global _EXTRACTOR_CACHE
-    if _EXTRACTOR_CACHE is None:
-        logger.info(f"Loading GLiNER2 model: {model_name}")
-        _EXTRACTOR_CACHE = GLiNER2.from_pretrained(model_name)
-        logger.info("✓ Model loaded and cached")
-    return _EXTRACTOR_CACHE
-
-def clear_extractor_cache():
-    """Force reload model on next call (debug only)."""
-    global _EXTRACTOR_CACHE
-    _EXTRACTOR_CACHE = None
+logger.info("Using modular extraction pipeline (model.py, schema.py, extract_core.py, deduplicate.py)")
 
 
-def build_schema(extractor, relation_schema: dict):
-    """Build GLiNER2 schema từ dynamic relation dict."""
-    return (
-        extractor.create_schema()
-        .entities(ENTITY_LABELS)
-        .relations(relation_schema)
+# For backward compatibility - add main block for direct usage
+if __name__ == "__main__":
+    import sys
+    sys.path.insert(0, ".")
+    from src.data.musique_loader import load_musique, get_all_passages
+    
+    # Example usage
+    samples = load_musique("dev", max_samples=20)
+    passages = get_all_passages(samples)
+    
+    results = extract_triples_batch(
+        passages,
+        relation_schema=DEFAULT_RELATION_SCHEMA,
+        deduplicate=True
     )
-
-
-def normalize_entity_text(text: str) -> tuple[str, str]:
-    """Returns (display_text, match_key) - normalized for matching."""
-    display = text.strip()  # Giữ original case
-    match_key = display.lower()  # Dùng cho dedup
-    return display, match_key
-
-
-def extract_information(text: str, extractor, schema) -> tuple[list, list, int]:
-    """Extract entities + typed triples từ 1 passage."""
-    results = extractor.extract(text, schema, include_confidence=True)
-
-    entities = []
-    for label, items in results.get("entities", {}).items():
-        for item in items:
-            entity_text = item["text"] if isinstance(item, dict) else item
-            entity_text = normalize_entity_text(entity_text)
-            entities.append({
-                "text": entity_text[0],
-                "text_lower": entity_text[1],
-                "type": label,
-                "score": item.get("confidence") if isinstance(item, dict) else None,
-            })
-
-    entity_type = {e["text_lower"]: e["type"] for e in entities}
-
-    triples = []
-    filtered_count = 0
-    for rel, pairs in results.get("relation_extraction", {}).items():
-        for pair in pairs:
-            if isinstance(pair, (list, tuple)):
-                head, tail, score = pair[0], pair[1], None
-            elif isinstance(pair, dict):
-                head = pair["head"]["text"] if isinstance(pair["head"], dict) else pair["head"]
-                tail = pair["tail"]["text"] if isinstance(pair["tail"], dict) else pair["tail"]
-                head = normalize_entity_text(head)  # ← Returns (display, match_key)
-                tail = normalize_entity_text(tail)  # ← Returns (display, match_key)
-                head_score = pair["head"].get("confidence", 1.0) if isinstance(pair["head"], dict) else 1.0
-                tail_score = pair["tail"].get("confidence", 1.0) if isinstance(pair["tail"], dict) else 1.0
-                score = min(head_score, tail_score)
-            else:
-                continue
-
-            # Confidence filtering
-            if score is not None and score < CONFIDENCE_MIN:
-                filtered_count += 1
-                continue
-            
-            # ← NEW: Filter generic entities + short entities
-            head_key = head[1] if isinstance(head, tuple) else head.lower()
-            tail_key = tail[1] if isinstance(tail, tuple) else tail.lower()
-            
-            # Skip generic pronouns/vague subjects
-            if head_key in GENERIC_ENTITIES or tail_key in GENERIC_ENTITIES:
-                filtered_count += 1
-                continue
-            
-            # Skip very short entities (likely abbreviations like "EK", "GE", "V")
-            if len(head_key) < MIN_ENTITY_LENGTH or len(tail_key) < MIN_ENTITY_LENGTH:
-                filtered_count += 1
-                continue
-
-            # Type constraint filtering - STRICT mode (skip if None)
-            if rel in TYPE_CONSTRAINTS:
-                expected_subj, expected_objs = TYPE_CONSTRAINTS[rel]
-                
-                # ← SKIP filtering if constraints are None (permissive relations)
-                if expected_subj is None or expected_objs is None:
-                    pass  # Allow any types for this relation
-                else:
-                    # ← Use pre-computed head_key/tail_key (already checked above)
-                    # SKIP if either entity not in extracted entity_type map
-                    # (might be from GLiNER but not in our entity list)
-                    if head_key not in entity_type or tail_key not in entity_type:
-                        # Don't filter out - just skip type check
-                        pass
-                    else:
-                        head_type = entity_type[head_key]
-                        tail_type = entity_type[tail_key]
-                        
-                        if head_type != expected_subj:
-                            filtered_count += 1
-                            continue
-                        
-                        if tail_type not in expected_objs:
-                            filtered_count += 1
-                            continue
-
-            # ← Extract display text (index 0) khi lưu triples
-            head_display = head[0] if isinstance(head, tuple) else head
-            tail_display = tail[0] if isinstance(tail, tuple) else tail
-            
-            triples.append({
-                "subject": head_display, 
-                "relation": rel, 
-                "object": tail_display, 
-                "score": score
-            })
-
-    return entities, triples, filtered_count
-
-
-def deduplicate_triples(results: list[dict]) -> list[dict]:
-    """
-    Merge triples giống nhau từ nhiều passage.
-    Aggregate confidence scores.
-    Returns: list of { passage: None, entities: [], triples: [dedup_list] }
-    """
-    # Group triples by (subject, relation, object) key
-    triple_groups = {}
     
-    for r in results:
+    # Sample output
+    for r in results[:3]:
+        if r.get('passage'):
+            print(f"\nPassage: {r['passage'][:80]}...")
         for t in r["triples"]:
-            key = (t["subject"].lower(), t["relation"], t["object"].lower())  # Match by lowercase
-            if key not in triple_groups:
-                triple_groups[key] = []
-            triple_groups[key].append(t["score"])
-    
-    # Deduplicated triples với average confidence
-    dedup_triples = []
-    for (subj, rel, obj), scores in triple_groups.items():
-        avg_score = sum(s for s in scores if s is not None) / len([s for s in scores if s is not None]) if any(s is not None for s in scores) else None
-        dedup_triples.append({
-            "subject": subj,
-            "relation": rel,
-            "object": obj,
-            "score": avg_score,
-            "freq": len(scores)  # ← Đếm số lần xuất hiện
-        })
-    
-    # Sort by frequency (cao nhất trước)
-    dedup_triples.sort(key=lambda x: x["freq"], reverse=True)
-    
-    return [{"passage": None, "entities": [], "triples": dedup_triples}]
-
-
-def extract_triples_batch(passages: list[str],
-                           relation_schema: dict = None,
-                           batch_size: int = 32,
-                           skip_cache: bool = True, 
-                           deduplicate: bool = True,
-                           extractor=None,
-                           save_cache: bool = True) -> list[dict]:
-    """
-    Chạy Pass 2 trên toàn corpus với cải thiện.
-    Args:
-        passages: list of text passages
-        relation_schema: custom relation definitions
-        batch_size: batch size cho GLiNER2
-        skip_cache: bỏ qua cache (False = dùng cache nếu có)
-        deduplicate: gộp triples giống nhau
-        extractor: pre-loaded GLiNER2 model
-        save_cache: whether to incrementally save cache after extraction
-    Returns: list of { passage, entities, triples }
-    """
-    # ← Fix cache logic
-    if not skip_cache and TRIPLES_CACHE.exists():
-        with open(TRIPLES_CACHE) as f:
-            cached = json.load(f)
-        
-        # ← Fix: Ensure triples are proper dicts (JSON may convert them)
-        for r in cached:
-            if "triples" in r and isinstance(r["triples"], list):
-                fixed_triples = []
-                for t in r["triples"]:
-                    if isinstance(t, dict):
-                        fixed_triples.append({
-                            "subject": str(t.get("subject", "")),
-                            "relation": str(t.get("relation", "")),
-                            "object": str(t.get("object", "")),
-                            "score": t.get("score"),
-                            "freq": t.get("freq")
-                        })
-                    elif isinstance(t, (list, tuple)) and len(t) >= 3:
-                        fixed_triples.append({
-                            "subject": str(t[0]),
-                            "relation": str(t[1]),
-                            "object": str(t[2]),
-                            "score": t[3] if len(t) > 3 else None,
-                            "freq": t[4] if len(t) > 4 else None
-                        })
-                r["triples"] = fixed_triples
-        
-        logger.info(f"✓ Loaded triples cache: {len(cached)} passages")
-        return cached
-
-    schema_dict = relation_schema or DEFAULT_RELATION_SCHEMA
-    
-    # ← Use singleton cached model (load only if needed)
-    if extractor is None:
-        extractor = get_extractor()
-    
-    schema = build_schema(extractor, schema_dict)
-
-    results = []
-    total = len(passages)
-    total_filtered = 0
-
-    for i in range(0, total, batch_size):
-        batch = passages[i : i + batch_size]
-        
-        for passage in batch:
-            try:
-                entities, triples, filtered = extract_information(passage, extractor, schema)
-                results.append({"passage": passage, "entities": entities, "triples": triples})
-                total_filtered += filtered
-            except Exception as e:
-                # ← Better error logging
-                logger.warning(f"Passage {i} failed: {type(e).__name__}: {str(e)}")
-                results.append({"passage": passage, "entities": [], "triples": []})
-
-        if (i // batch_size + 1) % 5 == 0 or i + len(batch) >= total:
-            total_triples = sum(len(r['triples']) for r in results)
-            logger.info(f"[{i + len(batch)}/{total}] {total_triples} triples (filtered: {total_filtered})")
-
-    # ← Incremental save: merge with existing cache instead of overwriting
-    if save_cache:
-        CACHE_DIR.mkdir(parents=True, exist_ok=True)
-        
-        # Load existing cache if it exists
-        cached_results = []
-        if TRIPLES_CACHE.exists():
-            try:
-                with open(TRIPLES_CACHE) as f:
-                    cached_results = json.load(f)
-                logger.info(f"   Merging with existing {len(cached_results)} cached results...")
-            except:
-                pass
-        
-        # Merge new results with cached
-        all_cached = cached_results + results
-        
-        # Save merged results back
-        with open(TRIPLES_CACHE, "w") as f:
-            json.dump(all_cached, f)
-        
-        # ← NEW: Also save with timestamp for comparison
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        timestamped_cache = CACHE_DIR / f"triples_{timestamp}.json"
-        with open(timestamped_cache, "w") as f:
-            json.dump(all_cached, f)
-        logger.info(f"   💾 Also saved timestamped copy: {timestamped_cache.name}")
-    
-    total_kept = sum(len(r['triples']) for r in results)
-    if save_cache:
-        total_merged = sum(len(r['triples']) for r in (cached_results + results))
-        logger.info(f"✓ Saved: {total_kept} new + {len(cached_results)} cached = {total_merged} total triples")
-    else:
-        logger.info(f"✓ Extracted: {total_kept} triples, {total_filtered} filtered, {len(results)} passages")
-
-    # ← Optional deduplication
-    if deduplicate:
-        logger.info("Deduplicating triples across passages...")
-        results = deduplicate_triples(results)
-
-    return results
+            freq_str = f" (freq: {t.get('freq', 1)})" if t.get('freq') else ""
+            print(f"  ({t['subject']}, {t['relation']}, {t['object']}){freq_str}")
 
 
 if __name__ == "__main__":
