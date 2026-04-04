@@ -1,0 +1,117 @@
+Loading data...
+Loading passages...
+Loaded 200 samples
+Graph: 13339 nodes, 27205 edges
+Passages: 3535, Triples: 14719
+
+======================================================================
+SYSTEM CONFIGURATION
+======================================================================
+Retrieval method: Passage-based ranking (HippoRAG style)
+Entity extraction strategies:
+  1. Spacy NER - exact match + optimized fuzzy match (similarity >= 0.75)
+     * Fuzzy applied to entities with length >= 3 normalized chars
+     * Search space: nodes with length in range [n-4, n+4] (length pruning)
+  2. Noun chunks - exact match only (skip if >5 entities found)
+  3. Pattern-based extraction:
+     * 'the X performer/actor/director/film' -> extract X
+     * 'distributed/released/produced the X' -> extract X
+  4. SequenceMatcher for fuzzy ratio scoring + substring matching
+  [PERF] Node list caching + length-based index pruning + pattern matching
+
+Ranking metric: Weighted entity coverage + frequency boost
+Top-k passages: 10
+Neighborhood hops: 4
+Weighting scheme:
+  - Hop distance weight: hop 0=1.0, hop 1=0.85, hop 2=0.7, hop 3=0.55, hop 4+=0.4
+  - Entity frequency boost: 1 entity=1.0x, 2 entities=1.4x, 3+ entities=1.8x
+Optimizations applied:
+  - BFS expansion to 3 hops for deeper entity neighborhood
+  - Weighted scoring by entity distance (closer = higher weight)
+  - Passage frequency multiplier for multi-entity coverage
+  - [PERF] Pre-computed entity-to-passages cache (O(1) lookup vs O(n^2) nested loop)
+
+======================================================================
+DEBUG: First 3 samples
+======================================================================
+
+Sample 1: Who is the spouse of the Green performer?...
+Expected answer: Miquette Giraudy
+Query entities: []
+❌ No query entities found!
+
+Sample 2: Who founded the company that distributed the film UHF?...
+Expected answer: Mike Medavoy
+Query entities: []
+❌ No query entities found!
+
+Sample 3: What administrative territorial entity is the owner of Ciuda...
+Expected answer: Tamaulipas
+Query entities: ['ciudad deportiva']
+Top-3 passages:
+  1. [ ] Score: 1.40
+      The Ciudad Deportiva ("Sports City") is a sports complex in Nuevo Lare...
+  2. [ ] Score: 1.40
+      The Ciudad Deportiva ("Sports City") is a sports complex in Nuevo Lare...
+
+======================================================================
+EVALUATION
+======================================================================
+[20] Q: In which county is Kimbrough Memorial Stadium loca...
+     Gold: Randall County | Found: ✗ 
+[40] Q: Who is the child of the person who followed Tihomi...
+     Gold: Saint Sava | Found: ✗ 
+[60] Q: What award was received by the person who authored...
+     Gold: Nobel Prize in Literature | Found: ✗ 
+[80] Q: What is the record label of the Metalworks Studio ...
+     Gold: TML Entertainment | Found: ✓ (rank 7)
+[100] Q: Who is the father of the Labo M performer?...
+     Gold: Louis Chedid | Found: ✓ (rank 2)
+[120] Q: When did the military instruction start in the uni...
+     Gold: 1912 | Found: ✓ (rank 2)
+[140] Q: Who married the publisher of abolitionist newspape...
+     Gold: Helen Pitts Douglass | Found: ✓ (rank 2)
+[160] Q: What recognition did the Jack Goes Boating directo...
+     Gold: nominated for an Academy Award for Best Supporting Actor | Found: ✗ 
+[180] Q: When was John's eldest son crowned?...
+     Gold: 1216 | Found: ✗ 
+[200] Q: What team drafted the winner of the NBA scoring ti...
+     Gold: Oklahoma City Thunder | Found: ✗ 
+
+======================================================================
+OVERALL RESULTS
+======================================================================
+Coverage (evaluated): 165/200 (82.5%)
+Skipped: 35 (no query entities)
+
+Found in top-10 passages: 54/165 (32.7%)
+
+Rank Statistics (when answer found):
+  Average rank: 2.78
+  Median rank: 2.0
+  Min rank: 1
+  Max rank: 10
+
+Rank Distribution:
+  Rank 1: 18 (33.3%)
+  Rank 2: 16 (29.6%)
+  Rank 3: 9 (16.7%)
+  Rank 4: 2 (3.7%)
+  Rank 5: 2 (3.7%)
+  Rank 6: 2 (3.7%)
+  Rank 7: 1 (1.9%)
+  Rank 8: 1 (1.9%)
+  Rank 9: 2 (3.7%)
+  Rank 10: 1 (1.9%)
+
+======================================================================
+HOP-BY-HOP ANALYSIS
+======================================================================
+2-hop: 54/200 (27.0%)
+
+======================================================================
+TIMING INFORMATION
+======================================================================
+Evaluation time: 171.67s
+Total time: 172.72s
+Timestamp: 2026-03-30 21:55:52

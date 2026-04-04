@@ -1,0 +1,87 @@
+Loading data...
+Loaded 200 samples, graph has 13339 nodes
+
+======================================================================
+GRAPH STATISTICS
+======================================================================
+Nodes: 13339
+Edges: 27205
+Components: 1716
+Average degree: 4.08
+
+======================================================================
+DEBUG: First 3 samples
+======================================================================
+
+Sample 1: Who is the spouse of the Green performer?...
+Expected answer: Miquette Giraudy
+Query entities found: ['doctor who', 'greens', 'greenfield', 'linda joyce greenhouse', 'peter green splinter group']
+Top-10 results:
+  1. [ ] actress (0.0461)
+  2. [ ] politician (0.0437)
+  3. [ ] british (0.0403)
+  4. [ ] linda joyce greenhouse (0.0248)
+  5. [ ] chittoor mohammed habeebullah (0.0208)
+  6. [ ] united kingdom (0.0182)
+  7. [ ] american (0.0178)
+  8. [ ] scottish (0.0166)
+  9. [ ] doctor who (0.0157)
+  10. [ ] 1997 (0.0144)
+
+Sample 2: Who founded the company that distributed the film UHF?...
+Expected answer: Mike Medavoy
+Query entities found: ['uhf television station']
+Top-10 results:
+  1. [ ] uhf television station (0.5188)
+  2. [ ] ceo (0.4813)
+
+Sample 3: What administrative territorial entity is the owner of Ciuda...
+Expected answer: Tamaulipas
+Query entities found: ['ciudad deportiva']
+Top-10 results:
+  1. [ ] ciudad deportiva (0.5188)
+  2. [ ] nuevo laredo, mexico (0.4813)
+
+======================================================================
+EVALUATION
+======================================================================
+[20] Q: In which county is Kimbrough Memorial Stadium loca...
+     Gold: Randall County | Hit: ✗
+[40] Q: Who is the child of the person who followed Tihomi...
+     Gold: Saint Sava | Hit: ✗
+[60] Q: What award was received by the person who authored...
+     Gold: Nobel Prize in Literature | Hit: ✗
+[80] Q: What is the record label of the Metalworks Studio ...
+     Gold: TML Entertainment | Hit: ✗
+[100] Q: Who is the father of the Labo M performer?...
+     Gold: Louis Chedid | Hit: ✗
+[120] Q: When did the military instruction start in the uni...
+     Gold: 1912 | Hit: ✗
+[140] Q: Who married the publisher of abolitionist newspape...
+     Gold: Helen Pitts Douglass | Hit: ✓
+[160] Q: What recognition did the Jack Goes Boating directo...
+     Gold: nominated for an Academy Award for Best Supporting Actor | Hit: ✗
+[180] Q: When was John's eldest son crowned?...
+     Gold: 1216 | Hit: ✗
+[200] Q: What team drafted the winner of the NBA scoring ti...
+     Gold: Oklahoma City Thunder | Hit: ✓
+
+======================================================================
+OVERALL RESULTS
+======================================================================
+Coverage (evaluated): 200/200 (100.0%)
+Skipped: 0 (no query entities)
+
+Hit@10 (FIXED):      30/200 (15.0%)
+
+======================================================================
+HOP-BY-HOP ANALYSIS
+======================================================================
+2-hop: 30/200 (15.0%)
+
+======================================================================
+TIMING INFORMATION
+======================================================================
+Evaluation time: 82.13s
+Total time: 83.89s
+Timestamp: 2026-03-30 21:13:14

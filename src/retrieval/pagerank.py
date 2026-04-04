@@ -3,12 +3,74 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import networkx as nx
+import numpy as np
 from src.graph.build_graph import load_graph, normalize
+
+
+def personalized_pagerank_hipporag(G, query_entities, top_k=10, damping=0.5, max_iter=20, tol=0.01):
+    """
+    HippoRAG style Personalized PageRank
+    
+    Key improvements:
+    - damping=0.5 (more random jumps vs 0.85)
+    - reset_prob array like HippoRAG
+    - Clean NaN handling
+    - Fewer iterations (faster convergence)
+    
+    Args:
+        G: NetworkX graph
+        query_entities: list of seed entities
+        top_k: return top k nodes
+        damping: damping factor (0.5 = 50% continue, 50% jump to seed)
+        max_iter: max iterations
+        tol: convergence tolerance
+    
+    Returns:
+        list of (node_name, score) tuples ranked by score
+    """
+    if G.number_of_nodes() == 0:
+        return []
+
+    query_nodes = [normalize(e) for e in query_entities]
+    valid_nodes = [n for n in query_nodes if n in G]
+
+    if not valid_nodes:
+        return []
+
+    # ← Build reset probability array (HippoRAG style)
+    reset_prob = {}
+    base_score = 1.0 / len(valid_nodes)
+    
+    # Initialize all nodes to 0
+    for node in G.nodes():
+        reset_prob[node] = 0.0
+    
+    # Set seed nodes to base score
+    for node in valid_nodes:
+        reset_prob[node] = base_score
+    
+    # ← Clean NaN handling (like HippoRAG)
+    reset_prob = {k: (v if v >= 0 and not np.isnan(v) else 0.0) 
+                  for k, v in reset_prob.items()}
+
+    # PPR với damping thấp hơn (HippoRAG style)
+    pr_scores = nx.pagerank(
+        G,
+        alpha=damping,      # ← 0.5 thay vì 0.85
+        personalization=reset_prob,
+        weight="weight",
+        max_iter=max_iter,  # ← 20 iterations (faster)
+        tol=tol
+    )
+
+    # Sort và return
+    ranked = sorted(pr_scores.items(), key=lambda x: x[1], reverse=True)
+    return ranked[:top_k]
 
 
 def personalized_pagerank(G, query_entities, top_k=10, alpha=0.85, entity_type_filter=None, max_iter=20, tol=0.01):
     """
-    Personalized PageRank cho graph retrieval
+    Standard Personalized PageRank (keep for backward compatibility)
     
     Args:
         max_iter: Giảm từ 100 → 20 iterations
@@ -34,8 +96,8 @@ def personalized_pagerank(G, query_entities, top_k=10, alpha=0.85, entity_type_f
         alpha=alpha,
         personalization=personalization,
         weight="weight",
-        max_iter=max_iter,   # ← THÊM
-        tol=tol              # ← THÊM
+        max_iter=max_iter,
+        tol=tol
     )
 
     ranked = sorted(pr_scores.items(), key=lambda x: x[1], reverse=True)
@@ -102,8 +164,8 @@ def personalized_pagerank_fast(G, query_entities, top_k=10, alpha=0.85, neighbor
         alpha=alpha,
         personalization=personalization,
         weight="weight",
-        max_iter=20,
-        tol=0.01
+        max_iter=100,  # ← Increased from 20 for fragmented graphs
+        tol=0.05      # ← Relaxed from 0.01 for disconnected components
     )
     
     ranked = sorted(pr_scores.items(), key=lambda x: x[1], reverse=True)
@@ -168,19 +230,33 @@ if __name__ == "__main__":
         sys.exit(1)
     
     print(f"Query entities: {query_entities}")
-    ranked = personalized_pagerank(
-        G, query_entities, top_k=30,
-        entity_type_filter=['person', 'work', 'organization']  # Loại occupation, location
+    
+    # ← Test HippoRAG style PPR
+    print("\n=== HippoRAG Style PPR (damping=0.5) ===")
+    ranked_hipporag = personalized_pagerank_hipporag(
+        G, query_entities, top_k=30
     )
     
-    if not ranked:
+    if not ranked_hipporag:
         print("Không tìm thấy entity trong graph!")
     else:
-        print("\nTop 30 nodes:")
-        for i, (node, score) in enumerate(ranked, 1):
+        print("Top 30 nodes:")
+        for i, (node, score) in enumerate(ranked_hipporag, 1):
             print(f"  {i}. {node}: {score:.4f}")
 
         # Lấy top 10 cho subgraph
-        top_10_ranked = ranked[:10]
+        top_10_ranked = ranked_hipporag[:10]
         subG = get_subgraph(G, top_10_ranked, hops=4)
         print(f"\nSubgraph có {subG.number_of_nodes()} nodes, {subG.number_of_edges()} edges")
+    
+    # ← Test traditional PPR (for comparison)
+    print("\n=== Traditional PPR (damping=0.85) ===")
+    ranked_traditional = personalized_pagerank(
+        G, query_entities, top_k=30,
+        entity_type_filter=['person', 'work', 'organization']
+    )
+    
+    if ranked_traditional:
+        print("Top 10 nodes:")
+        for i, (node, score) in enumerate(ranked_traditional[:10], 1):
+            print(f"  {i}. {node}: {score:.4f}")

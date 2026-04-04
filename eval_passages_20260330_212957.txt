@@ -1,0 +1,101 @@
+Loading data...
+Loading passages...
+Loaded 200 samples
+Graph: 13339 nodes, 27205 edges
+Passages: 3535, Triples: 14719
+
+======================================================================
+SYSTEM CONFIGURATION
+======================================================================
+Retrieval method: Passage-based ranking (HippoRAG style)
+Entity extraction: Spacy NER
+Ranking metric: Weighted entity coverage + frequency boost
+Top-k passages: 10
+Neighborhood hops: 3
+Weighting scheme: hop 0=1.0, hop 1=0.8, hop 2=0.6, hop 3+=0.4
+Entity frequency boost: 1 entity=1x, 2 entities=1.4x, 3+ entities=1.8x
+
+======================================================================
+DEBUG: First 3 samples
+======================================================================
+
+Sample 1: Who is the spouse of the Green performer?...
+Expected answer: Miquette Giraudy
+Query entities: []
+❌ No query entities found!
+
+Sample 2: Who founded the company that distributed the film UHF?...
+Expected answer: Mike Medavoy
+Query entities: []
+❌ No query entities found!
+
+Sample 3: What administrative territorial entity is the owner of Ciuda...
+Expected answer: Tamaulipas
+Query entities: ['ciudad deportiva', 'ciudad deportiva magdalena mixhuca']
+Top-3 passages:
+  1. [ ] Score: 3.24
+      The 1969 Gran Premio de Mexico (Mexican Grand Prix) was a Formula One ...
+  2. [ ] Score: 3.24
+      The 1969 Gran Premio de Mexico (Mexican Grand Prix) was a Formula One ...
+  3. [ ] Score: 1.40
+      The Ciudad Deportiva ("Sports City") is a sports complex in Nuevo Lare...
+
+======================================================================
+EVALUATION
+======================================================================
+[20] Q: In which county is Kimbrough Memorial Stadium loca...
+     Gold: Randall County | Found: ✗ 
+[40] Q: Who is the child of the person who followed Tihomi...
+     Gold: Saint Sava | Found: ✗ 
+[60] Q: What award was received by the person who authored...
+     Gold: Nobel Prize in Literature | Found: ✗ 
+[80] Q: What is the record label of the Metalworks Studio ...
+     Gold: TML Entertainment | Found: ✗ 
+[100] Q: Who is the father of the Labo M performer?...
+     Gold: Louis Chedid | Found: ✓ (rank 2)
+[120] Q: When did the military instruction start in the uni...
+     Gold: 1912 | Found: ✗ 
+[140] Q: Who married the publisher of abolitionist newspape...
+     Gold: Helen Pitts Douglass | Found: ✓ (rank 1)
+[160] Q: What recognition did the Jack Goes Boating directo...
+     Gold: nominated for an Academy Award for Best Supporting Actor | Found: ✗ 
+[180] Q: When was John's eldest son crowned?...
+     Gold: 1216 | Found: ✗ 
+[200] Q: What team drafted the winner of the NBA scoring ti...
+     Gold: Oklahoma City Thunder | Found: ✗ 
+
+======================================================================
+OVERALL RESULTS
+======================================================================
+Coverage (evaluated): 173/200 (86.5%)
+Skipped: 27 (no query entities)
+
+Found in top-10 passages: 45/173 (26.0%)
+
+Rank Statistics (when answer found):
+  Average rank: 2.60
+  Median rank: 2.0
+  Min rank: 1
+  Max rank: 9
+
+Rank Distribution:
+  Rank 1: 17 (37.8%)
+  Rank 2: 12 (26.7%)
+  Rank 3: 6 (13.3%)
+  Rank 4: 4 (8.9%)
+  Rank 5: 2 (4.4%)
+  Rank 7: 1 (2.2%)
+  Rank 8: 2 (4.4%)
+  Rank 9: 1 (2.2%)
+
+======================================================================
+HOP-BY-HOP ANALYSIS
+======================================================================
+2-hop: 45/200 (22.5%)
+
+======================================================================
+TIMING INFORMATION
+======================================================================
+Evaluation time: 193.16s
+Total time: 193.60s
+Timestamp: 2026-03-30 21:33:10

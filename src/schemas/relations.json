@@ -9,5 +9,20 @@
   "occurred_in": "occurred in",
   "educated_at": "studied at",
   "worked_at": "worked at",
-  "member_of": "is member of"
+  "member_of": "is member of",
+  "spouse": "is married to",
+  "sibling": "is sibling of",
+  "parent_of": "is parent of",
+  "child_of": "is child of",
+  "distributed_by": "was distributed by",
+  "directed_by": "was directed by",
+  "written_by": "was written by",
+  "produced_by": "was produced by",
+  "performed_in": "performed in",
+  "starred_in": "starred in",
+  "collaborated_with": "collaborated with",
+  "owner_of": "owns",
+  "owned_by": "is owned by",
+  "capital_of": "is capital of",
+  "currency_of": "is currency of"
 }

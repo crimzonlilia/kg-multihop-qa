@@ -1,0 +1,127 @@
+Loading data...
+Loading passages...
+Loaded 200 samples
+Graph: 13339 nodes, 27205 edges
+Passages: 3535, Triples: 14719
+
+======================================================================
+SYSTEM CONFIGURATION
+======================================================================
+Retrieval method: Passage-based ranking (HippoRAG style)
+Entity extraction strategies:
+  1. Spacy NER - exact & fuzzy-relaxed match (similarity >= 0.7, range ±5)
+  2. Noun chunks - extract individual words (word-level fallback)
+  3. Pattern-based extraction:
+     * 'the X performer/actor/director/film' + individual words
+  4. Caching strategies:
+     * Pre-normalized graph node index (O(1) exact lookup)
+     * SequenceMatcher for fuzzy scoring with relaxed thresholds
+  [PERF] Normalized node dictionary + fallback word-level extraction
+
+Ranking metric: Weighted entity coverage + frequency boost
+Top-k passages: 10
+Neighborhood hops: 4
+Weighting scheme:
+  - Hop distance weight: hop 0=1.0, hop 1=0.85, hop 2=0.7, hop 3=0.55, hop 4+=0.4
+  - Entity frequency boost: 1 entity=1.0x, 2 entities=1.4x, 3+ entities=1.8x
+Optimizations applied:
+  - BFS expansion to 3 hops for deeper entity neighborhood
+  - Weighted scoring by entity distance (closer = higher weight)
+  - Passage frequency multiplier for multi-entity coverage
+  - [PERF] Pre-computed entity-to-passages cache (O(1) lookup vs O(n^2) nested loop)
+
+======================================================================
+DEBUG: First 3 samples
+======================================================================
+
+Sample 1: Who is the spouse of the Green performer?...
+Expected answer: Miquette Giraudy
+Query entities: ['spouse', 'performer', 'green']
+Top-3 passages:
+  1. [✓] Score: 9.45
+      Miquette Giraudy (born 9 February 1953, Nice, France) is a keyboard pl...
+  2. [✓] Score: 9.45
+      Miquette Giraudy (born 9 February 1953, Nice, France) is a keyboard pl...
+  3. [ ] Score: 7.56
+      Osiris (/ oʊ ˈsaɪrɪs /, from Egyptian wsjr, Coptic ⲟⲩⲥⲓⲣⲉ) is an Egypt...
+
+Sample 2: Who founded the company that distributed the film UHF?...
+Expected answer: Mike Medavoy
+Query entities: ['film', 'company']
+Top-3 passages:
+  1. [ ] Score: 8.82
+      Henry the Young King fought a short war with his brother Richard in 11...
+  2. [ ] Score: 8.82
+      The political situation in England rapidly began to deteriorate. Longc...
+  3. [ ] Score: 8.64
+      The company received a Royal Charter from Queen Elizabeth I on 31 Dece...
+
+Sample 3: What administrative territorial entity is the owner of Ciuda...
+Expected answer: Tamaulipas
+Query entities: ['ciudad deportiva']
+Top-3 passages:
+  1. [ ] Score: 1.40
+      The Ciudad Deportiva ("Sports City") is a sports complex in Nuevo Lare...
+  2. [ ] Score: 1.40
+      The Ciudad Deportiva ("Sports City") is a sports complex in Nuevo Lare...
+
+======================================================================
+EVALUATION
+======================================================================
+[20] Q: In which county is Kimbrough Memorial Stadium loca...
+     Gold: Randall County | Found: ✗ 
+[40] Q: Who is the child of the person who followed Tihomi...
+     Gold: Saint Sava | Found: ✗ 
+[60] Q: What award was received by the person who authored...
+     Gold: Nobel Prize in Literature | Found: ✗ 
+[80] Q: What is the record label of the Metalworks Studio ...
+     Gold: TML Entertainment | Found: ✓ (rank 8)
+[100] Q: Who is the father of the Labo M performer?...
+     Gold: Louis Chedid | Found: ✓ (rank 6)
+[120] Q: When did the military instruction start in the uni...
+     Gold: 1912 | Found: ✗ 
+[140] Q: Who married the publisher of abolitionist newspape...
+     Gold: Helen Pitts Douglass | Found: ✓ (rank 4)
+[160] Q: What recognition did the Jack Goes Boating directo...
+     Gold: nominated for an Academy Award for Best Supporting Actor | Found: ✗ 
+[180] Q: When was John's eldest son crowned?...
+     Gold: 1216 | Found: ✗ 
+[200] Q: What team drafted the winner of the NBA scoring ti...
+     Gold: Oklahoma City Thunder | Found: ✗ 
+
+======================================================================
+OVERALL RESULTS
+======================================================================
+Coverage (evaluated): 199/200 (99.5%)
+Skipped: 1 (no query entities)
+
+Found in top-10 passages: 47/199 (23.6%)
+
+Rank Statistics (when answer found):
+  Average rank: 3.74
+  Median rank: 3.0
+  Min rank: 1
+  Max rank: 10
+
+Rank Distribution:
+  Rank 1: 11 (23.4%)
+  Rank 2: 8 (17.0%)
+  Rank 3: 11 (23.4%)
+  Rank 4: 4 (8.5%)
+  Rank 5: 1 (2.1%)
+  Rank 6: 3 (6.4%)
+  Rank 8: 5 (10.6%)
+  Rank 9: 3 (6.4%)
+  Rank 10: 1 (2.1%)
+
+======================================================================
+HOP-BY-HOP ANALYSIS
+======================================================================
+2-hop: 47/200 (23.5%)
+
+======================================================================
+TIMING INFORMATION
+======================================================================
+Evaluation time: 270.81s
+Total time: 272.46s
+Timestamp: 2026-03-30 22:01:57

@@ -9,6 +9,7 @@ from src.retrieval.pagerank import personalized_pagerank, personalized_pagerank_
 from src.qa import triples_to_text
 import nltk
 import networkx as nx
+import spacy
 
 def normalize_answer(s: str) -> str:
     s = s.lower().strip()
@@ -26,48 +27,29 @@ def extract_query_entities_from_graph(G, question):
     3. Match to graph nodes
     """
     try:
-        nltk.data.find('tokenizers/punkt')
-    except LookupError:
-        nltk.download('punkt')
-    
-    stop_words = {'who', 'what', 'where', 'when', 'why', 'how', 'is', 'are', 
-                  'the', 'a', 'an', 'and', 'or', 'of', 'in', 'at', 'by', 'for',
-                  'founded', 'distributed', 'spouse', 'owner', 'entity', 'performer'}
-    
-    # Extract capitalized words (proper nouns)
-    words = question.split()
-    candidates = []
-    
-    for word in words:
-        # Clean punctuation
-        clean_word = re.sub(r'[^\w]', '', word)
+        import spacy
+        nlp = spacy.load("en_core_web_sm")
+        doc = nlp(question)
         
-        # Check if capitalized and not stop word
-        if clean_word and clean_word[0].isupper() and clean_word.lower() not in stop_words and len(clean_word) > 2:
-            candidates.append(clean_word.lower())
+        # Extract NER entities
+        entities = [ent.text.lower() for ent in doc.ents]
+        
+        # Match to graph
+        matched = [n for n in G.nodes() if any(e in n for e in entities)]
+        
+        if matched:
+            return sorted(matched, key=len, reverse=True)[:5]
+    except:
+        pass
     
-    # Match to graph nodes
-    matched = [n for n in G.nodes() if n.lower() in candidates]
-    
-    # Fallback: nếu không tìm được, try longer substrings từ question
-    if not matched:
-        # Split question by common delimiters
-        phrases = re.split(r'\s+(?:of|in|is|the)\s+', question, flags=re.IGNORECASE)
-        for phrase in phrases:
-            phrase = phrase.strip().rstrip('?').lower()
-            if len(phrase) > 6:  # Longer phrases likely to be entities
-                # Try fuzzy match
-                for node in G.nodes():
-                    if node in phrase and len(node.split()) > 1:  # Multi-word entities
-                        matched.append(node)
-                if matched:
-                    break
-    
-    return sorted(matched, key=len, reverse=True)[:5]
+    # Fallback: capitalized words
+    words = question.split()
+    candidates = [w.lower() for w in words if w and w[0].isupper()]
+    return [n for n in G.nodes() if n.lower() in candidates][:5]
 
 
 if __name__ == "__main__":
-    samples = load_musique("dev", max_samples=10)  # All 2417 samples
+    samples = load_musique("dev", max_samples=200)
     G = load_graph("data/processed/kg.pkl")
 
     # DEBUG: Check first 3 samples
@@ -114,8 +96,8 @@ if __name__ == "__main__":
     for i, sample in enumerate(samples):
         question = sample["question"]
         gold = sample["answer"]
-        hops = sample["hops"]
-        supporting_facts = sample["supporting_facts"]
+        hops = sample.get("hops", 1)
+        supporting_facts = sample.get("supporting_facts", [])
         
         hops_counts[hops] += 1
 

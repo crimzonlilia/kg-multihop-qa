@@ -48,7 +48,7 @@ def build_triple_to_passage_map(passages):
             if isinstance(triple, dict) and 'subject' in triple:
                 key = (
                     triple.get('subject', '').lower(),
-                    triple.get('predicate', '').lower(),
+                    triple.get('relation', '').lower(),
                     triple.get('object', '').lower()
                 )
                 triple_to_passages[key].append(passage_id)

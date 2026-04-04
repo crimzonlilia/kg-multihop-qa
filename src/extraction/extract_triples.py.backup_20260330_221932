@@ -3,7 +3,6 @@ from pathlib import Path
 import json
 import os
 import logging
-from datetime import datetime
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -156,20 +155,6 @@ def extract_information(text: str, extractor, schema) -> tuple[list, list, int]:
             if score is not None and score < CONFIDENCE_MIN:
                 filtered_count += 1
                 continue
-            
-            # ← NEW: Filter generic entities + short entities
-            head_key = head[1] if isinstance(head, tuple) else head.lower()
-            tail_key = tail[1] if isinstance(tail, tuple) else tail.lower()
-            
-            # Skip generic pronouns/vague subjects
-            if head_key in GENERIC_ENTITIES or tail_key in GENERIC_ENTITIES:
-                filtered_count += 1
-                continue
-            
-            # Skip very short entities (likely abbreviations like "EK", "GE", "V")
-            if len(head_key) < MIN_ENTITY_LENGTH or len(tail_key) < MIN_ENTITY_LENGTH:
-                filtered_count += 1
-                continue
 
             # Type constraint filtering - STRICT mode (skip if None)
             if rel in TYPE_CONSTRAINTS:
@@ -179,7 +164,10 @@ def extract_information(text: str, extractor, schema) -> tuple[list, list, int]:
                 if expected_subj is None or expected_objs is None:
                     pass  # Allow any types for this relation
                 else:
-                    # ← Use pre-computed head_key/tail_key (already checked above)
+                    # ← Use match_key (lowercase) for type lookup
+                    head_key = head[1] if isinstance(head, tuple) else head.lower()
+                    tail_key = tail[1] if isinstance(tail, tuple) else tail.lower()
+                    
                     # SKIP if either entity not in extracted entity_type map
                     # (might be from GLiNER but not in our entity list)
                     if head_key not in entity_type or tail_key not in entity_type:
@@ -344,13 +332,6 @@ def extract_triples_batch(passages: list[str],
         # Save merged results back
         with open(TRIPLES_CACHE, "w") as f:
             json.dump(all_cached, f)
-        
-        # ← NEW: Also save with timestamp for comparison
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        timestamped_cache = CACHE_DIR / f"triples_{timestamp}.json"
-        with open(timestamped_cache, "w") as f:
-            json.dump(all_cached, f)
-        logger.info(f"   💾 Also saved timestamped copy: {timestamped_cache.name}")
     
     total_kept = sum(len(r['triples']) for r in results)
     if save_cache:
