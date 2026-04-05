@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Quick test of dynamic schema grouping extraction.
-Tests the new extract_triples_batch_dynamic() function.
+Tests the extract_triples_batch() function with use_dynamic=True.
 """
 import sys
 sys.path.insert(0, ".")
@@ -14,10 +14,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 from src.data.musique_loader import load_musique, get_all_passages
-from src.extraction.extract_triples import (
-    extract_triples_batch_dynamic,
-    extract_triples_batch,
-)
+from src.extraction import extract_triples_batch
 
 # Load small sample for quick test
 logger.info("Loading MuSiQue dataset (50 samples)...")
@@ -39,14 +36,15 @@ logger.info("Testing DYNAMIC SCHEMA EXTRACTION (optimized)")
 logger.info("="*60)
 
 start = time.time()
-results_dynamic = extract_triples_batch_dynamic(
+results_dynamic = extract_triples_batch(
     passages,
     relation_schema=test_schema,
     batch_size=25,
+    use_dynamic=True,
     k=5,
     skip_cache=True,
     deduplicate=False,
-    save_cache=False
+    save_cache_to_disk=False
 )
 dynamic_time = time.time() - start
 
@@ -61,7 +59,7 @@ results_standard = extract_triples_batch(
     batch_size=25,
     skip_cache=True,
     deduplicate=False,
-    save_cache=False
+    save_cache_to_disk=False
 )
 standard_time = time.time() - start
 

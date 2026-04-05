@@ -4,6 +4,7 @@ import logging
 import torch
 import json
 import os
+import hashlib
 from pathlib import Path
 from collections import defaultdict
 
@@ -23,6 +24,7 @@ CONFIDENCE_MIN = 0.5
 # Cache directory
 CACHE_DIR = Path("data/cache")
 TRIPLES_CACHE = CACHE_DIR / "triples.json"
+EXTRACTION_CHECKPOINT = CACHE_DIR / "extraction_checkpoint.json"
 
 # Setup environment
 os.environ['OMP_NUM_THREADS'] = '8'
@@ -141,41 +143,98 @@ def extract_relations_from_batch(relation_results: list, entity_types: dict,
     return batch_triples
 
 
-def load_cache() -> list[dict] | None:
-    """Load triples from cache if available."""
+def _fingerprint_passages(passages: list[str]) -> str:
+    """Build a stable fingerprint so we only reuse cache for the same corpus."""
+    digest = hashlib.sha1()
+    for passage in passages:
+        digest.update(str(len(passage)).encode("utf-8"))
+        digest.update(b"::")
+        digest.update(passage.encode("utf-8", errors="ignore"))
+        digest.update(b"\n")
+    return digest.hexdigest()
+
+
+def _build_cache_metadata(passages: list[str], relation_schema: dict,
+                          entity_labels: list[str], batch_size: int,
+                          use_dynamic: bool, k: int, threshold: float,
+                          extract_entities: bool) -> dict:
+    """Describe the current extraction run for safe cache reuse."""
+    relation_keys = sorted((relation_schema or {}).keys())
+    return {
+        "version": 2,
+        "num_passages": len(passages),
+        "fingerprint": _fingerprint_passages(passages),
+        "relation_keys": relation_keys,
+        "entity_labels": sorted(entity_labels or []),
+        "batch_size": batch_size,
+        "use_dynamic": use_dynamic,
+        "k": k,
+        "threshold": threshold,
+        "extract_entities": extract_entities,
+    }
+
+
+def _cache_meta_matches(expected_meta: dict, actual_meta: dict) -> bool:
+    """Check whether a saved cache matches the current run settings."""
+    keys_to_compare = [
+        "version", "num_passages", "fingerprint", "relation_keys",
+        "entity_labels", "use_dynamic", "k", "threshold", "extract_entities",
+    ]
+    return all(expected_meta.get(key) == actual_meta.get(key) for key in keys_to_compare)
+
+
+def load_cache(expected_meta: dict | None = None) -> list[dict] | None:
+    """Load triples from cache if available and compatible with the current run."""
     if not TRIPLES_CACHE.exists():
         return None
-    
+
     try:
         with open(TRIPLES_CACHE) as f:
             cached = json.load(f)
-        logger.info(f"✓ Loaded cache: {len(cached)} passages")
-        return cached
+
+        # Backward-compatible with the old plain-list cache format.
+        if isinstance(cached, list):
+            if expected_meta and len(cached) != expected_meta.get("num_passages", len(cached)):
+                logger.info("Cache exists but does not match current passage count; ignoring it")
+                return None
+            logger.info(f"✓ Loaded legacy cache: {len(cached)} passages")
+            return cached
+
+        cached_meta = cached.get("meta", {})
+        cached_results = cached.get("results", [])
+        if expected_meta and not _cache_meta_matches(expected_meta, cached_meta):
+            logger.info("Cache metadata mismatch; ignoring stale extraction cache")
+            return None
+
+        logger.info(f"✓ Loaded cache: {len(cached_results)} passages")
+        return cached_results
     except Exception as e:
         logger.warning(f"Could not load cache: {e}")
         return None
 
 
-def save_cache(results: list[dict], merge_existing: bool = True):
-    """Save extraction results to cache."""
+def save_cache(results: list[dict], merge_existing: bool = False, metadata: dict | None = None):
+    """Save extraction results to cache with run metadata for safe reuse."""
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    
-    if merge_existing:
-        existing = []
-        if TRIPLES_CACHE.exists():
-            try:
-                with open(TRIPLES_CACHE) as f:
-                    existing = json.load(f)
-            except:
-                pass
-        
-        all_results = existing + results
-    else:
-        all_results = results
-    
+
+    all_results = results
+    if merge_existing and TRIPLES_CACHE.exists():
+        try:
+            with open(TRIPLES_CACHE) as f:
+                existing_payload = json.load(f)
+            existing_results = existing_payload if isinstance(existing_payload, list) else existing_payload.get("results", [])
+            all_results = existing_results + results
+        except Exception:
+            all_results = results
+
+    payload = {
+        "meta": metadata or {"version": 2, "num_passages": len(all_results)},
+        "results": all_results,
+    }
+
     with open(TRIPLES_CACHE, "w") as f:
-        json.dump(all_results, f)
-    
+        json.dump(payload, f)
+
     total_triples = sum(len(r['triples']) for r in all_results)
     logger.info(f"✓ Saved cache: {total_triples} triples from {len(all_results)} passages")
 
@@ -191,7 +250,8 @@ def extract_triples_batch(passages: list[str],
                          skip_cache: bool = True,
                          deduplicate: bool = True,
                          extractor=None,
-                         save_cache_to_disk: bool = True) -> list[dict]:
+                         save_cache_to_disk: bool = True,
+                         extract_entities: bool = True) -> list[dict]:
     """
     Extract triples from passages using GLiNER2.
     
@@ -208,6 +268,8 @@ def extract_triples_batch(passages: list[str],
         deduplicate: Merge duplicate triples
         extractor: Pre-loaded GLiNER2 model
         save_cache_to_disk: Save results to cache file
+        extract_entities: Run entity extraction pass for type filtering.
+            Set False for a faster but slightly noisier extraction mode.
     
     Returns: List of {'passage': str, 'entities': list, 'triples': list}
     """
@@ -224,10 +286,20 @@ def extract_triples_batch(passages: list[str],
     type_constraints = type_constraints or TYPE_CONSTRAINTS
     
     # Load cache
+    cache_meta = _build_cache_metadata(
+        passages=passages,
+        relation_schema=relation_schema,
+        entity_labels=entity_labels,
+        batch_size=batch_size,
+        use_dynamic=use_dynamic,
+        k=k,
+        threshold=threshold,
+        extract_entities=extract_entities,
+    )
     if not skip_cache:
-        cached = load_cache()
+        cached = load_cache(expected_meta=cache_meta)
         if cached:
-            return cached
+            return deduplicate_triples(cached) if deduplicate else cached
     
     # Get or load model
     if extractor is None:
@@ -237,9 +309,13 @@ def extract_triples_batch(passages: list[str],
     
     results = []
     total = len(passages)
-    logger.info(f"Extracting triples from {total} passages (batch_size={batch_size}, dynamic={use_dynamic})...")
+    all_relations = list(relation_schema.keys())
+    logger.info(
+        f"Extracting triples from {total} passages "
+        f"(batch_size={batch_size}, dynamic={use_dynamic}, entities={extract_entities})..."
+    )
     
-    with torch.no_grad():
+    with torch.inference_mode():
         # Dynamic schema grouping (optional)
         if use_dynamic:
             logger.info("Using dynamic schema grouping...")
@@ -249,53 +325,79 @@ def extract_triples_batch(passages: list[str],
             groups = grouping['groups']
             schemas = grouping['schemas']
             
+            logger.info(f"Multi-relation extraction: {len(groups)} unique schemas (vs {total} passages)")
+            
+            # ← OPTIMIZATION: Batch by schema_key
+            # All passages with same schema_key are extracted in ONE model call
+            # Model internally handles sub-batching via batch_size parameter
             for schema_key, passage_indices in groups.items():
-                group_passages = [passages[i] for i in passage_indices]
+                all_passages_for_schema = [passages[i] for i in passage_indices]
                 group_schema = schemas[schema_key]
+                group_relations = list(group_schema.keys())  # Convert dict to list of relation names
                 
-                # Extract for group
-                entity_results = extractor.batch_extract_entities(
-                    group_passages, entity_labels, include_confidence=True, batch_size=batch_size
-                )
+                # Single model call for all passages with this schema
+                # Model internally uses batch_size=32 to avoid GPU spike
+                entity_results = []
+                if extract_entities:
+                    entity_results = extractor.batch_extract_entities(
+                        all_passages_for_schema, entity_labels, include_confidence=True, batch_size=batch_size
+                    )
                 relation_results = extractor.batch_extract_relations(
-                    group_passages, group_schema, include_confidence=True, batch_size=batch_size
+                    all_passages_for_schema, group_relations, include_confidence=True, batch_size=batch_size
                 )
                 
-                # Process results
-                for group_idx, pass_idx in enumerate(passage_indices):
+                # Process all results from this schema batch
+                for pos, pass_idx in enumerate(passage_indices):
                     # Build entity type map
                     entity_types = {}
-                    if group_idx < len(entity_results):
-                        for ent in extract_entities_from_batch([entity_results[group_idx]], entity_labels):
+                    if extract_entities and pos < len(entity_results):
+                        for ent in extract_entities_from_batch([entity_results[pos]], entity_labels):
                             entity_types[ent['text_lower']] = ent['type']
                     
                     # Extract triples
-                    if group_idx < len(relation_results):
+                    if pos < len(relation_results):
                         batch_triples = extract_relations_from_batch(
-                            [relation_results[group_idx]], entity_types, type_constraints
+                            [relation_results[pos]], entity_types, type_constraints
                         )
                         triples = batch_triples[0] if batch_triples else []
                     else:
                         triples = []
                     
                     results.append({
-                        "passage": passages[pass_idx],
+                        "passage": all_passages_for_schema[pos],  # Use actual passage text from batch
                         "entities": [],
                         "triples": triples
                     })
         else:
-            # Standard batch processing (simpler, faster)
-            for i in range(0, total, batch_size):
+            # Standard batch processing with checkpoint/resume support
+            checkpoint_every = 100  # save checkpoint every N batches
+
+            # Resume from checkpoint if available
+            resume_idx = 0
+            if EXTRACTION_CHECKPOINT.exists():
+                try:
+                    with open(EXTRACTION_CHECKPOINT) as _f:
+                        ckpt = json.load(_f)
+                    if ckpt.get("total") == total:  # same dataset
+                        resume_idx = ckpt["next_idx"]
+                        results = ckpt["results"]
+                        logger.info(f"Resuming from passage {resume_idx}/{total} ({len(results)} already done)")
+                except Exception as _e:
+                    logger.warning(f"Could not load checkpoint: {_e}")
+
+            for i in range(resume_idx, total, batch_size):
                 batch = passages[i:i+batch_size]
                 batch_num = (i // batch_size) + 1
                 
                 try:
                     # Extract entities and relations
-                    entity_results = extractor.batch_extract_entities(
-                        batch, entity_labels, include_confidence=True, batch_size=batch_size
-                    )
+                    entity_results = []
+                    if extract_entities:
+                        entity_results = extractor.batch_extract_entities(
+                            batch, entity_labels, include_confidence=True, batch_size=batch_size
+                        )
                     relation_results = extractor.batch_extract_relations(
-                        batch, relation_schema, include_confidence=True, batch_size=batch_size
+                        batch, all_relations, include_confidence=True, batch_size=batch_size
                     )
                     
                     # Process results
@@ -303,7 +405,7 @@ def extract_triples_batch(passages: list[str],
                         # Build entity type map
                         entity_types = {}
                         entities = []
-                        if idx < len(entity_results):
+                        if extract_entities and idx < len(entity_results):
                             entities = extract_entities_from_batch([entity_results[idx]], entity_labels)
                             for ent in entities:
                                 entity_types[ent['text_lower']] = ent['type']
@@ -325,15 +427,27 @@ def extract_triples_batch(passages: list[str],
                     if batch_num % 5 == 0:
                         total_triples = sum(len(r['triples']) for r in results)
                         logger.info(f"[Batch {batch_num}: {i+len(batch)}/{total}] {total_triples} triples")
+
+                    # Save checkpoint every N batches
+                    if batch_num % checkpoint_every == 0:
+                        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+                        with open(EXTRACTION_CHECKPOINT, "w") as _f:
+                            json.dump({"total": total, "next_idx": i + len(batch), "results": results}, _f)
+                        logger.info(f"Checkpoint saved at passage {i + len(batch)}/{total}")
                 
                 except Exception as e:
                     logger.error(f"Batch {batch_num} failed: {type(e).__name__}: {str(e)}")
                     for passage in batch:
                         results.append({"passage": passage, "entities": [], "triples": []})
+
+            # Remove checkpoint on successful completion
+            if EXTRACTION_CHECKPOINT.exists():
+                EXTRACTION_CHECKPOINT.unlink()
+                logger.info("Checkpoint cleared after successful extraction")
     
     # Save cache
     if save_cache_to_disk:
-        save_cache(results, merge_existing=True)
+        save_cache(results, merge_existing=False, metadata=cache_meta)
     
     # Deduplicate if requested
     if deduplicate:

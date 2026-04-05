@@ -18,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
 
 from src.data.musique_loader import load_musique, get_all_passages
 from src.extraction.relation_discovery import run_discovery
-from src.extraction.extract_triples import extract_triples_batch_dynamic, extract_triples_batch, build_schema, get_extractor, clear_extractor_cache
+from src.extraction import extract_triples_batch, get_extractor
 from src.graph.build_graph import build_graph, save_graph, graph_stats
 from gliner2 import GLiNER2
 import time
@@ -106,14 +106,15 @@ def process_passages_in_batches(passages, relation_schema, extractor, batch_size
         print(f"   [{batch_num}/{total_batches}] Processing {len(batch)} passages... ", end='', flush=True)
         
         # ← Extract with dynamic schema grouping (optimized batch processing)
-        batch_results = extract_triples_batch_dynamic(
+        batch_results = extract_triples_batch(
             batch, 
-            relation_schema=relation_schema, 
+            relation_schema=relation_schema,
+            use_dynamic=True,
             extractor=extractor,
             batch_size=min(64, len(batch)),  # Smaller batch size for dynamic (embeddings per batch)
             k=8,  # Select top-8 relations per passage
             skip_cache=True,  # Skip loading old cache within batch
-            save_cache=True   # ← Save incrementally after each batch
+            save_cache_to_disk=True   # ← Save incrementally after each batch
         )
         all_results.extend(batch_results)
         

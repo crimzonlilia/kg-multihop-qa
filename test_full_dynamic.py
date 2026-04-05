@@ -14,11 +14,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 from src.data.musique_loader import load_musique, get_all_passages
-from src.extraction.extract_triples import (
-    extract_triples_batch_dynamic,
-    extract_triples_batch,
-    get_extractor
-)
+from src.extraction import extract_triples_batch, get_extractor
 
 # Load larger sample
 logger.info("Loading MuSiQue dataset (full dev set)...")
@@ -46,15 +42,16 @@ logger.info("Test 1: Dynamic extraction (full dataset, batched)")
 logger.info("="*70)
 
 start = time.time()
-results_dynamic = extract_triples_batch_dynamic(
+results_dynamic = extract_triples_batch(
     passages,
     relation_schema=test_schema,
     batch_size=100,  # Batch size for passage groups
+    use_dynamic=True,
     k=8,
     skip_cache=True,
     deduplicate=False,
     extractor=extractor,
-    save_cache=False
+    save_cache_to_disk=False
 )
 dynamic_time = time.time() - start
 

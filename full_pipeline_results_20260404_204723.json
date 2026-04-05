@@ -1,0 +1,276 @@
+{
+  "timestamp": "20260404_204723",
+  "config": {
+    "data_limit": 5,
+    "sample_queries": 5
+  },
+  "timing": {
+    "load": 0.0,
+    "extract": 10.821005582809448,
+    "build": 0.0031096935272216797,
+    "merge": 0.0010101795196533203,
+    "retrieval": 0.0033903121948242188,
+    "total": 10.828515768051147
+  },
+  "results": [
+    {
+      "query_id": "2hop__460946_294723",
+      "query": "Who is the spouse of the Green performer?",
+      "gold_passages": [
+        5,
+        10
+      ],
+      "gold_found": 0,
+      "ranked_passages": [
+        [
+          "piping technology and products",
+          0.061755319148936165
+        ],
+        [
+          "copperfield",
+          0.054255319148936165
+        ],
+        [
+          "plansee se",
+          0.03617021276595744
+        ],
+        [
+          "studio 60 on the sunset strip",
+          0.026035987971463823
+        ],
+        [
+          "tomlinson chair manufacturing company complex",
+          0.02558510638297872
+        ],
+        [
+          "high point",
+          0.02558510638297872
+        ],
+        [
+          "market square",
+          0.02558510638297872
+        ],
+        [
+          "high point, north carolina",
+          0.02558510638297872
+        ],
+        [
+          "rugby",
+          0.02558510638297872
+        ],
+        [
+          "germany",
+          0.02558510638297872
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__252311_366220",
+      "query": "Who founded the company that distributed the film UHF?",
+      "gold_passages": [
+        6,
+        10
+      ],
+      "gold_found": 0,
+      "ranked_passages": [
+        [
+          "piping technology and products",
+          0.061755319148936165
+        ],
+        [
+          "copperfield",
+          0.054255319148936165
+        ],
+        [
+          "plansee se",
+          0.03617021276595744
+        ],
+        [
+          "studio 60 on the sunset strip",
+          0.026035987971463823
+        ],
+        [
+          "tomlinson chair manufacturing company complex",
+          0.02558510638297872
+        ],
+        [
+          "high point",
+          0.02558510638297872
+        ],
+        [
+          "market square",
+          0.02558510638297872
+        ],
+        [
+          "high point, north carolina",
+          0.02558510638297872
+        ],
+        [
+          "rugby",
+          0.02558510638297872
+        ],
+        [
+          "germany",
+          0.02558510638297872
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__701895_752697",
+      "query": "What administrative territorial entity is the owner of Ciudad Deportiva located?",
+      "gold_passages": [
+        3,
+        11
+      ],
+      "gold_found": 0,
+      "ranked_passages": [
+        [
+          "piping technology and products",
+          0.061755319148936165
+        ],
+        [
+          "copperfield",
+          0.054255319148936165
+        ],
+        [
+          "plansee se",
+          0.03617021276595744
+        ],
+        [
+          "studio 60 on the sunset strip",
+          0.026035987971463823
+        ],
+        [
+          "tomlinson chair manufacturing company complex",
+          0.02558510638297872
+        ],
+        [
+          "high point",
+          0.02558510638297872
+        ],
+        [
+          "market square",
+          0.02558510638297872
+        ],
+        [
+          "high point, north carolina",
+          0.02558510638297872
+        ],
+        [
+          "rugby",
+          0.02558510638297872
+        ],
+        [
+          "germany",
+          0.02558510638297872
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__259228_793698",
+      "query": "Where is Ulrich Walter's employer headquartered?",
+      "gold_passages": [
+        11,
+        14
+      ],
+      "gold_found": 0,
+      "ranked_passages": [
+        [
+          "piping technology and products",
+          0.061755319148936165
+        ],
+        [
+          "copperfield",
+          0.054255319148936165
+        ],
+        [
+          "plansee se",
+          0.03617021276595744
+        ],
+        [
+          "studio 60 on the sunset strip",
+          0.026035987971463823
+        ],
+        [
+          "tomlinson chair manufacturing company complex",
+          0.02558510638297872
+        ],
+        [
+          "high point",
+          0.02558510638297872
+        ],
+        [
+          "market square",
+          0.02558510638297872
+        ],
+        [
+          "high point, north carolina",
+          0.02558510638297872
+        ],
+        [
+          "rugby",
+          0.02558510638297872
+        ],
+        [
+          "germany",
+          0.02558510638297872
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__481349_302087",
+      "query": "Which company owns the manufacturer of Learjet 60?",
+      "gold_passages": [
+        5,
+        10
+      ],
+      "gold_found": 0,
+      "ranked_passages": [
+        [
+          "piping technology and products",
+          0.061755319148936165
+        ],
+        [
+          "copperfield",
+          0.054255319148936165
+        ],
+        [
+          "plansee se",
+          0.03617021276595744
+        ],
+        [
+          "studio 60 on the sunset strip",
+          0.026035987971463823
+        ],
+        [
+          "tomlinson chair manufacturing company complex",
+          0.02558510638297872
+        ],
+        [
+          "high point",
+          0.02558510638297872
+        ],
+        [
+          "market square",
+          0.02558510638297872
+        ],
+        [
+          "high point, north carolina",
+          0.02558510638297872
+        ],
+        [
+          "rugby",
+          0.02558510638297872
+        ],
+        [
+          "germany",
+          0.02558510638297872
+        ]
+      ]
+    }
+  ],
+  "extrapolation": {
+    "full_passages": 22316,
+    "estimated_time": 12082.45789399147
+  }
+}

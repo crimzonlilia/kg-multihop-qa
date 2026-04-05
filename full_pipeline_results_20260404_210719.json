@@ -1,0 +1,188 @@
+{
+  "timestamp": "20260404_210719",
+  "config": {
+    "data_limit": 5,
+    "sample_queries": 5,
+    "top_k": 10,
+    "ppr_type": "hipporag"
+  },
+  "timing": {
+    "load": 0.0010669231414794922,
+    "extract": 13.482104301452637,
+    "build": 0.019787311553955078,
+    "merge": 0.002065420150756836,
+    "retrieval": 1.4474453926086426,
+    "total": 14.95246934890747
+  },
+  "evaluation": {
+    "total_queries": 5,
+    "hits_at_1": 0,
+    "hits_at_5": 0,
+    "hits_at_10": 1,
+    "aic_at_1": 0.0,
+    "aic_at_5": 0.0,
+    "aic_at_10": 0.2
+  },
+  "results": [
+    {
+      "query_id": "2hop__460946_294723",
+      "question": "Who is the spouse of the Green performer?",
+      "answer": "miquette giraudy",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__460946_294723_p5",
+        "2hop__460946_294723_p10"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__460946_294723_p8",
+          0.5036211208816396
+        ],
+        [
+          "2hop__460946_294723_p12",
+          0.5036211208816396
+        ],
+        [
+          "2hop__252311_366220_p2",
+          0.014492753623188404
+        ],
+        [
+          "2hop__252311_366220_p12",
+          0.012077294685990338
+        ],
+        [
+          "2hop__259228_793698_p4",
+          0.012077294685990338
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__252311_366220",
+      "question": "Who founded the company that distributed the film UHF?",
+      "answer": "mike medavoy",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__252311_366220_p6",
+        "2hop__252311_366220_p10"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__460946_294723_p0",
+          0.0
+        ],
+        [
+          "2hop__460946_294723_p1",
+          0.0
+        ],
+        [
+          "2hop__460946_294723_p2",
+          0.0
+        ],
+        [
+          "2hop__460946_294723_p3",
+          0.0
+        ],
+        [
+          "2hop__460946_294723_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__701895_752697",
+      "question": "What administrative territorial entity is the owner of Ciudad Deportiva located?",
+      "answer": "tamaulipas",
+      "found_at": 7,
+      "gold_ids": [
+        "2hop__701895_752697_p3",
+        "2hop__701895_752697_p11"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__259228_793698_p3",
+          0.5009811583010012
+        ],
+        [
+          "2hop__252311_366220_p2",
+          0.014492753623188404
+        ],
+        [
+          "2hop__252311_366220_p12",
+          0.012077294685990338
+        ],
+        [
+          "2hop__259228_793698_p4",
+          0.012077294685990338
+        ],
+        [
+          "2hop__252311_366220_p1",
+          0.012077294685990336
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__259228_793698",
+      "question": "Where is Ulrich Walter's employer headquartered?",
+      "answer": "cologne",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__259228_793698_p11",
+        "2hop__259228_793698_p14"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__460946_294723_p0",
+          0.0
+        ],
+        [
+          "2hop__460946_294723_p1",
+          0.0
+        ],
+        [
+          "2hop__460946_294723_p2",
+          0.0
+        ],
+        [
+          "2hop__460946_294723_p3",
+          0.0
+        ],
+        [
+          "2hop__460946_294723_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__481349_302087",
+      "question": "Which company owns the manufacturer of Learjet 60?",
+      "answer": "bombardier inc.",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__481349_302087_p5",
+        "2hop__481349_302087_p10"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__460946_294723_p0",
+          0.0
+        ],
+        [
+          "2hop__460946_294723_p1",
+          0.0
+        ],
+        [
+          "2hop__460946_294723_p2",
+          0.0
+        ],
+        [
+          "2hop__460946_294723_p3",
+          0.0
+        ],
+        [
+          "2hop__460946_294723_p4",
+          0.0
+        ]
+      ]
+    }
+  ]
+}

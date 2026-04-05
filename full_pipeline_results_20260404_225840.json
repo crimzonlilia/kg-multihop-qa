@@ -1,0 +1,3228 @@
+{
+  "timestamp": "20260404_225840",
+  "config": {
+    "data_limit": 100,
+    "sample_queries": 100,
+    "top_k": 10,
+    "ppr_type": "hipporag"
+  },
+  "timing": {
+    "load": 0.01163792610168457,
+    "extract": 280.7734923362732,
+    "build": 0.07895350456237793,
+    "merge": 0.011128902435302734,
+    "retrieval": 0.6954696178436279,
+    "total": 285.77799582481384
+  },
+  "evaluation": {
+    "total_queries": 100,
+    "hits_at_1": 4,
+    "hits_at_5": 20,
+    "hits_at_10": 46,
+    "aic_at_1": 0.04,
+    "aic_at_5": 0.2,
+    "aic_at_10": 0.46
+  },
+  "results": [
+    {
+      "query_id": "2hop__460946_294723",
+      "question": "Who is the spouse of the Green performer?",
+      "answer": "miquette giraudy",
+      "found_at": 6,
+      "gold_ids": [
+        "2hop__460946_294723_p5",
+        "2hop__460946_294723_p10"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__460946_294723_p0",
+          0.0
+        ],
+        [
+          "2hop__460946_294723_p1",
+          0.0
+        ],
+        [
+          "2hop__460946_294723_p2",
+          0.0
+        ],
+        [
+          "2hop__460946_294723_p3",
+          0.0
+        ],
+        [
+          "2hop__460946_294723_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__252311_366220",
+      "question": "Who founded the company that distributed the film UHF?",
+      "answer": "mike medavoy",
+      "found_at": 7,
+      "gold_ids": [
+        "2hop__252311_366220_p6",
+        "2hop__252311_366220_p10"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__252311_366220_p0",
+          0.0
+        ],
+        [
+          "2hop__252311_366220_p1",
+          0.0
+        ],
+        [
+          "2hop__252311_366220_p2",
+          0.0
+        ],
+        [
+          "2hop__252311_366220_p3",
+          0.0
+        ],
+        [
+          "2hop__252311_366220_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__701895_752697",
+      "question": "What administrative territorial entity is the owner of Ciudad Deportiva located?",
+      "answer": "tamaulipas",
+      "found_at": 4,
+      "gold_ids": [
+        "2hop__701895_752697_p3",
+        "2hop__701895_752697_p11"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__701895_752697_p0",
+          0.0
+        ],
+        [
+          "2hop__701895_752697_p1",
+          0.0
+        ],
+        [
+          "2hop__701895_752697_p2",
+          0.0
+        ],
+        [
+          "2hop__701895_752697_p3",
+          0.0
+        ],
+        [
+          "2hop__701895_752697_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__259228_793698",
+      "question": "Where is Ulrich Walter's employer headquartered?",
+      "answer": "cologne",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__259228_793698_p11",
+        "2hop__259228_793698_p14"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__259228_793698_p0",
+          0.0
+        ],
+        [
+          "2hop__259228_793698_p1",
+          0.0
+        ],
+        [
+          "2hop__259228_793698_p2",
+          0.0
+        ],
+        [
+          "2hop__259228_793698_p3",
+          0.0
+        ],
+        [
+          "2hop__259228_793698_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__481349_302087",
+      "question": "Which company owns the manufacturer of Learjet 60?",
+      "answer": "bombardier inc.",
+      "found_at": 6,
+      "gold_ids": [
+        "2hop__481349_302087_p5",
+        "2hop__481349_302087_p10"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__481349_302087_p0",
+          0.0
+        ],
+        [
+          "2hop__481349_302087_p1",
+          0.0
+        ],
+        [
+          "2hop__481349_302087_p2",
+          0.0
+        ],
+        [
+          "2hop__481349_302087_p3",
+          0.0
+        ],
+        [
+          "2hop__481349_302087_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__697790_864352",
+      "question": "Who is the child of Caroline LeRoy's spouse?",
+      "answer": "fletcher webster",
+      "found_at": 1,
+      "gold_ids": [
+        "2hop__697790_864352_p0",
+        "2hop__697790_864352_p10"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__697790_864352_p0",
+          0.0
+        ],
+        [
+          "2hop__697790_864352_p1",
+          0.0
+        ],
+        [
+          "2hop__697790_864352_p2",
+          0.0
+        ],
+        [
+          "2hop__697790_864352_p3",
+          0.0
+        ],
+        [
+          "2hop__697790_864352_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__207476_625987",
+      "question": "Who is the grandmother of Philippe, Duke of Orl\u00e9ans?",
+      "answer": "marie de' medici",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__207476_625987_p8",
+        "2hop__207476_625987_p14"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__207476_625987_p0",
+          0.0
+        ],
+        [
+          "2hop__207476_625987_p1",
+          0.0
+        ],
+        [
+          "2hop__207476_625987_p2",
+          0.0
+        ],
+        [
+          "2hop__207476_625987_p3",
+          0.0
+        ],
+        [
+          "2hop__207476_625987_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__390947_232243",
+      "question": "What is the goal of the group that European Movement Germany is a member of?",
+      "answer": "european integration",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__390947_232243_p4",
+        "2hop__390947_232243_p17"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__390947_232243_p0",
+          0.0
+        ],
+        [
+          "2hop__390947_232243_p1",
+          0.0
+        ],
+        [
+          "2hop__390947_232243_p2",
+          0.0
+        ],
+        [
+          "2hop__390947_232243_p3",
+          0.0
+        ],
+        [
+          "2hop__390947_232243_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__354635_174222",
+      "question": "What company succeeded the owner of Empire Sports Network?",
+      "answer": "time warner cable",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__354635_174222_p2",
+        "2hop__354635_174222_p16"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__354635_174222_p0",
+          0.0
+        ],
+        [
+          "2hop__354635_174222_p1",
+          0.0
+        ],
+        [
+          "2hop__354635_174222_p2",
+          0.0
+        ],
+        [
+          "2hop__354635_174222_p3",
+          0.0
+        ],
+        [
+          "2hop__354635_174222_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__635187_861533",
+      "question": "What province shares a border with the province where Lago District is located?",
+      "answer": "cabo delgado province",
+      "found_at": 1,
+      "gold_ids": [
+        "2hop__635187_861533_p0",
+        "2hop__635187_861533_p16"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__635187_861533_p0",
+          0.0
+        ],
+        [
+          "2hop__635187_861533_p1",
+          0.0
+        ],
+        [
+          "2hop__635187_861533_p2",
+          0.0
+        ],
+        [
+          "2hop__635187_861533_p3",
+          0.0
+        ],
+        [
+          "2hop__635187_861533_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__166824_185403",
+      "question": "What league does the team that plays in Stadio Ciro Vigorito play for?",
+      "answer": "lega pro prima divisione",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__166824_185403_p11",
+        "2hop__166824_185403_p13"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__166824_185403_p0",
+          0.0
+        ],
+        [
+          "2hop__166824_185403_p1",
+          0.0
+        ],
+        [
+          "2hop__166824_185403_p2",
+          0.0
+        ],
+        [
+          "2hop__166824_185403_p3",
+          0.0
+        ],
+        [
+          "2hop__166824_185403_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__698577_851686",
+      "question": "What is a notable work written by the author of The Timothy files?",
+      "answer": "anderson tapes",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__698577_851686_p3",
+        "2hop__698577_851686_p15"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__698577_851686_p0",
+          0.0
+        ],
+        [
+          "2hop__698577_851686_p1",
+          0.0
+        ],
+        [
+          "2hop__698577_851686_p2",
+          0.0
+        ],
+        [
+          "2hop__698577_851686_p3",
+          0.0
+        ],
+        [
+          "2hop__698577_851686_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__362107_652514",
+      "question": "In which borough was Callum McManaman born?",
+      "answer": "knowsley",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__362107_652514_p17",
+        "2hop__362107_652514_p18"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__362107_652514_p0",
+          0.0
+        ],
+        [
+          "2hop__362107_652514_p1",
+          0.0
+        ],
+        [
+          "2hop__362107_652514_p2",
+          0.0
+        ],
+        [
+          "2hop__362107_652514_p3",
+          0.0
+        ],
+        [
+          "2hop__362107_652514_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__402530_774333",
+      "question": "What other county does the county where Imperial is located share a border with?",
+      "answer": "crockett county",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__402530_774333_p12",
+        "2hop__402530_774333_p17"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__402530_774333_p0",
+          0.0
+        ],
+        [
+          "2hop__402530_774333_p1",
+          0.0
+        ],
+        [
+          "2hop__402530_774333_p2",
+          0.0
+        ],
+        [
+          "2hop__402530_774333_p3",
+          0.0
+        ],
+        [
+          "2hop__402530_774333_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__195917_575657",
+      "question": "In what county is William W. Blair's birthplace located?",
+      "answer": "orleans county",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__195917_575657_p15",
+        "2hop__195917_575657_p17"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__195917_575657_p0",
+          0.0
+        ],
+        [
+          "2hop__195917_575657_p1",
+          0.0
+        ],
+        [
+          "2hop__195917_575657_p2",
+          0.0
+        ],
+        [
+          "2hop__195917_575657_p3",
+          0.0
+        ],
+        [
+          "2hop__195917_575657_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__683835_709167",
+      "question": "What award did the author of The Red Tree receive?",
+      "answer": "academy award for best animated short film",
+      "found_at": 5,
+      "gold_ids": [
+        "2hop__683835_709167_p4",
+        "2hop__683835_709167_p13"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__683835_709167_p0",
+          0.0
+        ],
+        [
+          "2hop__683835_709167_p1",
+          0.0
+        ],
+        [
+          "2hop__683835_709167_p2",
+          0.0
+        ],
+        [
+          "2hop__683835_709167_p3",
+          0.0
+        ],
+        [
+          "2hop__683835_709167_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__197470_271394",
+      "question": "Where was Tyler MacDuff's child educated?",
+      "answer": "blair high school",
+      "found_at": 9,
+      "gold_ids": [
+        "2hop__197470_271394_p8",
+        "2hop__197470_271394_p14"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__197470_271394_p0",
+          0.0
+        ],
+        [
+          "2hop__197470_271394_p1",
+          0.0
+        ],
+        [
+          "2hop__197470_271394_p2",
+          0.0
+        ],
+        [
+          "2hop__197470_271394_p3",
+          0.0
+        ],
+        [
+          "2hop__197470_271394_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__458131_174974",
+      "question": "Who is the spouse of the Rabbit Hole's producer?",
+      "answer": "keith urban",
+      "found_at": 4,
+      "gold_ids": [
+        "2hop__458131_174974_p3",
+        "2hop__458131_174974_p9"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__458131_174974_p0",
+          0.0
+        ],
+        [
+          "2hop__458131_174974_p1",
+          0.0
+        ],
+        [
+          "2hop__458131_174974_p2",
+          0.0
+        ],
+        [
+          "2hop__458131_174974_p3",
+          0.0
+        ],
+        [
+          "2hop__458131_174974_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__299142_347613",
+      "question": "Who is the child of Sigrid Eskilsdotter's child?",
+      "answer": "svante stensson sture",
+      "found_at": 5,
+      "gold_ids": [
+        "2hop__299142_347613_p4",
+        "2hop__299142_347613_p15"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__299142_347613_p0",
+          0.0
+        ],
+        [
+          "2hop__299142_347613_p1",
+          0.0
+        ],
+        [
+          "2hop__299142_347613_p2",
+          0.0
+        ],
+        [
+          "2hop__299142_347613_p3",
+          0.0
+        ],
+        [
+          "2hop__299142_347613_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__528263_865831",
+      "question": "In which county is Kimbrough Memorial Stadium located?",
+      "answer": "randall county",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__528263_865831_p4",
+        "2hop__528263_865831_p16"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__528263_865831_p0",
+          0.0
+        ],
+        [
+          "2hop__528263_865831_p1",
+          0.0
+        ],
+        [
+          "2hop__528263_865831_p2",
+          0.0
+        ],
+        [
+          "2hop__528263_865831_p3",
+          0.0
+        ],
+        [
+          "2hop__528263_865831_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__569582_304416",
+      "question": "What record label is the performer of Almost Made Ya signed to?",
+      "answer": "derrty entertainment",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__569582_304416_p7",
+        "2hop__569582_304416_p10"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__569582_304416_p0",
+          0.0
+        ],
+        [
+          "2hop__569582_304416_p1",
+          0.0
+        ],
+        [
+          "2hop__569582_304416_p2",
+          0.0
+        ],
+        [
+          "2hop__569582_304416_p3",
+          0.0
+        ],
+        [
+          "2hop__569582_304416_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__505860_650613",
+      "question": "Where was the author of Hannibal and Scipio educated at?",
+      "answer": "exeter college",
+      "found_at": 10,
+      "gold_ids": [
+        "2hop__505860_650613_p9",
+        "2hop__505860_650613_p12"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__505860_650613_p0",
+          0.0
+        ],
+        [
+          "2hop__505860_650613_p1",
+          0.0
+        ],
+        [
+          "2hop__505860_650613_p2",
+          0.0
+        ],
+        [
+          "2hop__505860_650613_p3",
+          0.0
+        ],
+        [
+          "2hop__505860_650613_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__821197_368148",
+      "question": "In which county is Southern Maryland Electric Cooperative headquartered?",
+      "answer": "charles county",
+      "found_at": 8,
+      "gold_ids": [
+        "2hop__821197_368148_p3",
+        "2hop__821197_368148_p7"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__821197_368148_p0",
+          0.0
+        ],
+        [
+          "2hop__821197_368148_p1",
+          0.0
+        ],
+        [
+          "2hop__821197_368148_p2",
+          0.0
+        ],
+        [
+          "2hop__821197_368148_p3",
+          0.0
+        ],
+        [
+          "2hop__821197_368148_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__554167_451128",
+      "question": "Who is the child of the Victim of Romance performer?",
+      "answer": "chynna phillips",
+      "found_at": 9,
+      "gold_ids": [
+        "2hop__554167_451128_p8",
+        "2hop__554167_451128_p15"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__554167_451128_p0",
+          0.0
+        ],
+        [
+          "2hop__554167_451128_p1",
+          0.0
+        ],
+        [
+          "2hop__554167_451128_p2",
+          0.0
+        ],
+        [
+          "2hop__554167_451128_p3",
+          0.0
+        ],
+        [
+          "2hop__554167_451128_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__702496_430061",
+      "question": "What county was Tim Dubois born in?",
+      "answer": "mcdonald county",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__702496_430061_p6",
+        "2hop__702496_430061_p17"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__702496_430061_p0",
+          0.0
+        ],
+        [
+          "2hop__702496_430061_p1",
+          0.0
+        ],
+        [
+          "2hop__702496_430061_p2",
+          0.0
+        ],
+        [
+          "2hop__702496_430061_p3",
+          0.0
+        ],
+        [
+          "2hop__702496_430061_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__549146_223121",
+      "question": "What record label did the person who is part of The Bruce Lee Band start?",
+      "answer": "asian man records",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__549146_223121_p9",
+        "2hop__549146_223121_p18"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__549146_223121_p0",
+          0.0
+        ],
+        [
+          "2hop__549146_223121_p1",
+          0.0
+        ],
+        [
+          "2hop__549146_223121_p2",
+          0.0
+        ],
+        [
+          "2hop__549146_223121_p3",
+          0.0
+        ],
+        [
+          "2hop__549146_223121_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__647996_551681",
+      "question": "What is another notable work made by the author of Miss Sara Sampson?",
+      "answer": "emilia galotti",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__647996_551681_p15",
+        "2hop__647996_551681_p17"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__647996_551681_p0",
+          0.0
+        ],
+        [
+          "2hop__647996_551681_p1",
+          0.0
+        ],
+        [
+          "2hop__647996_551681_p2",
+          0.0
+        ],
+        [
+          "2hop__647996_551681_p3",
+          0.0
+        ],
+        [
+          "2hop__647996_551681_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__673655_316668",
+      "question": "What instrument is played by the person from The Blackout All-Stars?",
+      "answer": "conga",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__673655_316668_p12",
+        "2hop__673655_316668_p16"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__673655_316668_p0",
+          0.0
+        ],
+        [
+          "2hop__673655_316668_p1",
+          0.0
+        ],
+        [
+          "2hop__673655_316668_p2",
+          0.0
+        ],
+        [
+          "2hop__673655_316668_p3",
+          0.0
+        ],
+        [
+          "2hop__673655_316668_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__574419_270105",
+      "question": "What is the seat of the county where Van Hook Township is located?",
+      "answer": "stanley",
+      "found_at": 2,
+      "gold_ids": [
+        "2hop__574419_270105_p1",
+        "2hop__574419_270105_p8"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__574419_270105_p0",
+          0.0
+        ],
+        [
+          "2hop__574419_270105_p1",
+          0.0
+        ],
+        [
+          "2hop__574419_270105_p2",
+          0.0
+        ],
+        [
+          "2hop__574419_270105_p3",
+          0.0
+        ],
+        [
+          "2hop__574419_270105_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__403712_793210",
+      "question": "Who is the father of Edward Baring, 1st Baron Revelstoke's father?",
+      "answer": "sir francis baring, 1st baronet",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__403712_793210_p6",
+        "2hop__403712_793210_p17"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__403712_793210_p0",
+          0.0
+        ],
+        [
+          "2hop__403712_793210_p1",
+          0.0
+        ],
+        [
+          "2hop__403712_793210_p2",
+          0.0
+        ],
+        [
+          "2hop__403712_793210_p3",
+          0.0
+        ],
+        [
+          "2hop__403712_793210_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__832795_350510",
+      "question": "What group was the performer of Be the One a member of?",
+      "answer": "jackson 5",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__832795_350510_p8",
+        "2hop__832795_350510_p17"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__832795_350510_p0",
+          0.0
+        ],
+        [
+          "2hop__832795_350510_p1",
+          0.0
+        ],
+        [
+          "2hop__832795_350510_p2",
+          0.0
+        ],
+        [
+          "2hop__832795_350510_p3",
+          0.0
+        ],
+        [
+          "2hop__832795_350510_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__744055_408817",
+      "question": "Who is the lead singer of the band performing Bang Bang Rock & Roll?",
+      "answer": "eddie argos",
+      "found_at": 9,
+      "gold_ids": [
+        "2hop__744055_408817_p2",
+        "2hop__744055_408817_p8"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__744055_408817_p0",
+          0.0
+        ],
+        [
+          "2hop__744055_408817_p1",
+          0.0
+        ],
+        [
+          "2hop__744055_408817_p2",
+          0.0
+        ],
+        [
+          "2hop__744055_408817_p3",
+          0.0
+        ],
+        [
+          "2hop__744055_408817_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__726717_610238",
+      "question": "What is the network which National Cycle Route 57 is part of an example of?",
+      "answer": "national cycling route network",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__726717_610238_p12",
+        "2hop__726717_610238_p14"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__726717_610238_p0",
+          0.0
+        ],
+        [
+          "2hop__726717_610238_p1",
+          0.0
+        ],
+        [
+          "2hop__726717_610238_p2",
+          0.0
+        ],
+        [
+          "2hop__726717_610238_p3",
+          0.0
+        ],
+        [
+          "2hop__726717_610238_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__499577_617190",
+      "question": "Who is the spouse of the child of Peter Andreas Heiberg?",
+      "answer": "johanne luise heiberg",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__499577_617190_p11",
+        "2hop__499577_617190_p16"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__499577_617190_p0",
+          0.0
+        ],
+        [
+          "2hop__499577_617190_p1",
+          0.0
+        ],
+        [
+          "2hop__499577_617190_p2",
+          0.0
+        ],
+        [
+          "2hop__499577_617190_p3",
+          0.0
+        ],
+        [
+          "2hop__499577_617190_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__685280_510757",
+      "question": "The Unwinding author volunteered for which organisation?",
+      "answer": "peace corps",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__685280_510757_p11",
+        "2hop__685280_510757_p12"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__685280_510757_p0",
+          0.0
+        ],
+        [
+          "2hop__685280_510757_p1",
+          0.0
+        ],
+        [
+          "2hop__685280_510757_p2",
+          0.0
+        ],
+        [
+          "2hop__685280_510757_p3",
+          0.0
+        ],
+        [
+          "2hop__685280_510757_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__341305_332933",
+      "question": "What is the capital of the county that Pine Springs is located in?",
+      "answer": "van horn",
+      "found_at": 5,
+      "gold_ids": [
+        "2hop__341305_332933_p4",
+        "2hop__341305_332933_p6"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__341305_332933_p0",
+          0.0
+        ],
+        [
+          "2hop__341305_332933_p1",
+          0.0
+        ],
+        [
+          "2hop__341305_332933_p2",
+          0.0
+        ],
+        [
+          "2hop__341305_332933_p3",
+          0.0
+        ],
+        [
+          "2hop__341305_332933_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__731228_609866",
+      "question": "What district is the headquarter of Julia's House located?",
+      "answer": "east dorset",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__731228_609866_p7",
+        "2hop__731228_609866_p10"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__731228_609866_p0",
+          0.0
+        ],
+        [
+          "2hop__731228_609866_p1",
+          0.0
+        ],
+        [
+          "2hop__731228_609866_p2",
+          0.0
+        ],
+        [
+          "2hop__731228_609866_p3",
+          0.0
+        ],
+        [
+          "2hop__731228_609866_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__693444_220151",
+      "question": "Who is the spouse of Young Man Luther's author?",
+      "answer": "joan erikson",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__693444_220151_p12",
+        "2hop__693444_220151_p19"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__693444_220151_p0",
+          0.0
+        ],
+        [
+          "2hop__693444_220151_p1",
+          0.0
+        ],
+        [
+          "2hop__693444_220151_p2",
+          0.0
+        ],
+        [
+          "2hop__693444_220151_p3",
+          0.0
+        ],
+        [
+          "2hop__693444_220151_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__235471_565925",
+      "question": "What record label did the performer of The Place and the Time belong to?",
+      "answer": "columbia records",
+      "found_at": 7,
+      "gold_ids": [
+        "2hop__235471_565925_p0",
+        "2hop__235471_565925_p6"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__235471_565925_p0",
+          0.0
+        ],
+        [
+          "2hop__235471_565925_p1",
+          0.0
+        ],
+        [
+          "2hop__235471_565925_p2",
+          0.0
+        ],
+        [
+          "2hop__235471_565925_p3",
+          0.0
+        ],
+        [
+          "2hop__235471_565925_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__310456_846599",
+      "question": "Who is the child of the person who followed Tihomir of Serbia?",
+      "answer": "saint sava",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__310456_846599_p6",
+        "2hop__310456_846599_p17"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__310456_846599_p0",
+          0.0
+        ],
+        [
+          "2hop__310456_846599_p1",
+          0.0
+        ],
+        [
+          "2hop__310456_846599_p2",
+          0.0
+        ],
+        [
+          "2hop__310456_846599_p3",
+          0.0
+        ],
+        [
+          "2hop__310456_846599_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__335418_279684",
+      "question": "What team was Anna Benson's husband on?",
+      "answer": "pittsburgh pirates",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__335418_279684_p9",
+        "2hop__335418_279684_p16"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__335418_279684_p0",
+          0.0
+        ],
+        [
+          "2hop__335418_279684_p1",
+          0.0
+        ],
+        [
+          "2hop__335418_279684_p2",
+          0.0
+        ],
+        [
+          "2hop__335418_279684_p3",
+          0.0
+        ],
+        [
+          "2hop__335418_279684_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__191125_781346",
+      "question": "What place does the administrative territorial entity that Juba is located in share a border with?",
+      "answer": "eastern equatoria",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__191125_781346_p13",
+        "2hop__191125_781346_p14"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__191125_781346_p0",
+          0.0
+        ],
+        [
+          "2hop__191125_781346_p1",
+          0.0
+        ],
+        [
+          "2hop__191125_781346_p2",
+          0.0
+        ],
+        [
+          "2hop__191125_781346_p3",
+          0.0
+        ],
+        [
+          "2hop__191125_781346_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__475070_532404",
+      "question": "Where was the spouse of Frances Tupper born?",
+      "answer": "amherst",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__475070_532404_p4",
+        "2hop__475070_532404_p13"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__475070_532404_p0",
+          0.0
+        ],
+        [
+          "2hop__475070_532404_p1",
+          0.0
+        ],
+        [
+          "2hop__475070_532404_p2",
+          0.0
+        ],
+        [
+          "2hop__475070_532404_p3",
+          0.0
+        ],
+        [
+          "2hop__475070_532404_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__700093_455653",
+      "question": "Who founded the political party of Dimuthu Bandara Abayakoon?",
+      "answer": "rohana wijeweera",
+      "found_at": 9,
+      "gold_ids": [
+        "2hop__700093_455653_p8",
+        "2hop__700093_455653_p12"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__700093_455653_p0",
+          0.0
+        ],
+        [
+          "2hop__700093_455653_p1",
+          0.0
+        ],
+        [
+          "2hop__700093_455653_p2",
+          0.0
+        ],
+        [
+          "2hop__700093_455653_p3",
+          0.0
+        ],
+        [
+          "2hop__700093_455653_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__512773_346751",
+      "question": "Bancroft's county borders what county?",
+      "answer": "haliburton county",
+      "found_at": 8,
+      "gold_ids": [
+        "2hop__512773_346751_p7",
+        "2hop__512773_346751_p8"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__512773_346751_p0",
+          0.0
+        ],
+        [
+          "2hop__512773_346751_p1",
+          0.0
+        ],
+        [
+          "2hop__512773_346751_p2",
+          0.0
+        ],
+        [
+          "2hop__512773_346751_p3",
+          0.0
+        ],
+        [
+          "2hop__512773_346751_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__411091_625230",
+      "question": "In which county is Mark Dismore's birthplace located?",
+      "answer": "hancock county",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__411091_625230_p10",
+        "2hop__411091_625230_p13"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__411091_625230_p0",
+          0.0
+        ],
+        [
+          "2hop__411091_625230_p1",
+          0.0
+        ],
+        [
+          "2hop__411091_625230_p2",
+          0.0
+        ],
+        [
+          "2hop__411091_625230_p3",
+          0.0
+        ],
+        [
+          "2hop__411091_625230_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__423972_540249",
+      "question": "Who was the sibling of Nannina de' Medici?",
+      "answer": "giuliano de' medici",
+      "found_at": 6,
+      "gold_ids": [
+        "2hop__423972_540249_p5",
+        "2hop__423972_540249_p8"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__423972_540249_p0",
+          0.0
+        ],
+        [
+          "2hop__423972_540249_p1",
+          0.0
+        ],
+        [
+          "2hop__423972_540249_p2",
+          0.0
+        ],
+        [
+          "2hop__423972_540249_p3",
+          0.0
+        ],
+        [
+          "2hop__423972_540249_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__455158_247871",
+      "question": "What county is the NRHEG High School located in?",
+      "answer": "waseca county",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__455158_247871_p16",
+        "2hop__455158_247871_p19"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__455158_247871_p0",
+          0.0
+        ],
+        [
+          "2hop__455158_247871_p1",
+          0.0
+        ],
+        [
+          "2hop__455158_247871_p2",
+          0.0
+        ],
+        [
+          "2hop__455158_247871_p3",
+          0.0
+        ],
+        [
+          "2hop__455158_247871_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__189094_612080",
+      "question": "What league does the team that occupies the Rabat Ajax Football Ground belong to?",
+      "answer": "maltese premier league",
+      "found_at": 7,
+      "gold_ids": [
+        "2hop__189094_612080_p6",
+        "2hop__189094_612080_p13"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__189094_612080_p0",
+          0.0
+        ],
+        [
+          "2hop__189094_612080_p1",
+          0.0
+        ],
+        [
+          "2hop__189094_612080_p2",
+          0.0
+        ],
+        [
+          "2hop__189094_612080_p3",
+          0.0
+        ],
+        [
+          "2hop__189094_612080_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__765678_310556",
+      "question": "Who was married to the star of No Escape?",
+      "answer": "john profumo",
+      "found_at": 6,
+      "gold_ids": [
+        "2hop__765678_310556_p5",
+        "2hop__765678_310556_p19"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__765678_310556_p0",
+          0.0
+        ],
+        [
+          "2hop__765678_310556_p1",
+          0.0
+        ],
+        [
+          "2hop__765678_310556_p2",
+          0.0
+        ],
+        [
+          "2hop__765678_310556_p3",
+          0.0
+        ],
+        [
+          "2hop__765678_310556_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__304852_758385",
+      "question": "What administrative territorial entity contains the place where KPRM is licensed to broadcast to?",
+      "answer": "hubbard county",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__304852_758385_p5",
+        "2hop__304852_758385_p16"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__304852_758385_p0",
+          0.0
+        ],
+        [
+          "2hop__304852_758385_p1",
+          0.0
+        ],
+        [
+          "2hop__304852_758385_p2",
+          0.0
+        ],
+        [
+          "2hop__304852_758385_p3",
+          0.0
+        ],
+        [
+          "2hop__304852_758385_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__628752_538661",
+      "question": "Where are the headquarters for the publisher of In the Shadow of Greatness?",
+      "answer": "annapolis",
+      "found_at": 5,
+      "gold_ids": [
+        "2hop__628752_538661_p4",
+        "2hop__628752_538661_p5"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__628752_538661_p0",
+          0.0
+        ],
+        [
+          "2hop__628752_538661_p1",
+          0.0
+        ],
+        [
+          "2hop__628752_538661_p2",
+          0.0
+        ],
+        [
+          "2hop__628752_538661_p3",
+          0.0
+        ],
+        [
+          "2hop__628752_538661_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__661847_288421",
+      "question": "Who is part of the band that performed Full Cooperation?",
+      "answer": "erick sermon",
+      "found_at": 9,
+      "gold_ids": [
+        "2hop__661847_288421_p8",
+        "2hop__661847_288421_p10"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__661847_288421_p0",
+          0.0
+        ],
+        [
+          "2hop__661847_288421_p1",
+          0.0
+        ],
+        [
+          "2hop__661847_288421_p2",
+          0.0
+        ],
+        [
+          "2hop__661847_288421_p3",
+          0.0
+        ],
+        [
+          "2hop__661847_288421_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__496732_658428",
+      "question": "The territory containing Bansaan Island is located at which island?",
+      "answer": "panglao island",
+      "found_at": 8,
+      "gold_ids": [
+        "2hop__496732_658428_p7",
+        "2hop__496732_658428_p17"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__496732_658428_p0",
+          0.0
+        ],
+        [
+          "2hop__496732_658428_p1",
+          0.0
+        ],
+        [
+          "2hop__496732_658428_p2",
+          0.0
+        ],
+        [
+          "2hop__496732_658428_p3",
+          0.0
+        ],
+        [
+          "2hop__496732_658428_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__175175_347233",
+      "question": "In which county did Snappy Tomato Pizza form?",
+      "answer": "kenton county",
+      "found_at": 5,
+      "gold_ids": [
+        "2hop__175175_347233_p4",
+        "2hop__175175_347233_p8"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__175175_347233_p0",
+          0.0
+        ],
+        [
+          "2hop__175175_347233_p1",
+          0.0
+        ],
+        [
+          "2hop__175175_347233_p2",
+          0.0
+        ],
+        [
+          "2hop__175175_347233_p3",
+          0.0
+        ],
+        [
+          "2hop__175175_347233_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__496961_554601",
+      "question": "What's the place of birth of the former member of The Sunnyboys?",
+      "answer": "kingscliff",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__496961_554601_p17",
+        "2hop__496961_554601_p18"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__496961_554601_p0",
+          0.0
+        ],
+        [
+          "2hop__496961_554601_p1",
+          0.0
+        ],
+        [
+          "2hop__496961_554601_p2",
+          0.0
+        ],
+        [
+          "2hop__496961_554601_p3",
+          0.0
+        ],
+        [
+          "2hop__496961_554601_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__274110_413723",
+      "question": "In which district was Ernie Watts born?",
+      "answer": "west berkshire",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__274110_413723_p14",
+        "2hop__274110_413723_p18"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__274110_413723_p0",
+          0.0
+        ],
+        [
+          "2hop__274110_413723_p1",
+          0.0
+        ],
+        [
+          "2hop__274110_413723_p2",
+          0.0
+        ],
+        [
+          "2hop__274110_413723_p3",
+          0.0
+        ],
+        [
+          "2hop__274110_413723_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__231890_595414",
+      "question": "Which county does Lloyd Dane's birthplace belong to?",
+      "answer": "miller county",
+      "found_at": 1,
+      "gold_ids": [
+        "2hop__231890_595414_p0",
+        "2hop__231890_595414_p18"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__231890_595414_p0",
+          0.0
+        ],
+        [
+          "2hop__231890_595414_p1",
+          0.0
+        ],
+        [
+          "2hop__231890_595414_p2",
+          0.0
+        ],
+        [
+          "2hop__231890_595414_p3",
+          0.0
+        ],
+        [
+          "2hop__231890_595414_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__342746_679190",
+      "question": "Who is the spouse of the screenwriter of The Actress?",
+      "answer": "garson kanin",
+      "found_at": 1,
+      "gold_ids": [
+        "2hop__342746_679190_p0",
+        "2hop__342746_679190_p10"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__342746_679190_p0",
+          0.0
+        ],
+        [
+          "2hop__342746_679190_p1",
+          0.0
+        ],
+        [
+          "2hop__342746_679190_p2",
+          0.0
+        ],
+        [
+          "2hop__342746_679190_p3",
+          0.0
+        ],
+        [
+          "2hop__342746_679190_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__860241_766393",
+      "question": "What award was received by the person who authored Missing Person?",
+      "answer": "nobel prize in literature",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__860241_766393_p0",
+        "2hop__860241_766393_p16"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__860241_766393_p0",
+          0.0
+        ],
+        [
+          "2hop__860241_766393_p1",
+          0.0
+        ],
+        [
+          "2hop__860241_766393_p2",
+          0.0
+        ],
+        [
+          "2hop__860241_766393_p3",
+          0.0
+        ],
+        [
+          "2hop__860241_766393_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__29368_29376",
+      "question": "What event caused the founder of Australia's liberal party to become Prime Minister?",
+      "answer": "lyons' death in 1939",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__29368_29376_p5",
+        "2hop__29368_29376_p17"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__29368_29376_p0",
+          0.0
+        ],
+        [
+          "2hop__29368_29376_p1",
+          0.0
+        ],
+        [
+          "2hop__29368_29376_p2",
+          0.0
+        ],
+        [
+          "2hop__29368_29376_p3",
+          0.0
+        ],
+        [
+          "2hop__29368_29376_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__29367_29376",
+      "question": "What event caused the Liberal Party of Australia's longest-serving leader to become Prime Minister?",
+      "answer": "lyons' death in 1939",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__29367_29376_p10",
+        "2hop__29367_29376_p17"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__29367_29376_p0",
+          0.0
+        ],
+        [
+          "2hop__29367_29376_p1",
+          0.0
+        ],
+        [
+          "2hop__29367_29376_p2",
+          0.0
+        ],
+        [
+          "2hop__29367_29376_p3",
+          0.0
+        ],
+        [
+          "2hop__29367_29376_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__21075_5028",
+      "question": "What was the average per capita GVA in 2013 of the country which created Burma's academic system?",
+      "answer": "\u00a323,755",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__21075_5028_p10",
+        "2hop__21075_5028_p15"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__21075_5028_p0",
+          0.0
+        ],
+        [
+          "2hop__21075_5028_p1",
+          0.0
+        ],
+        [
+          "2hop__21075_5028_p2",
+          0.0
+        ],
+        [
+          "2hop__21075_5028_p3",
+          0.0
+        ],
+        [
+          "2hop__21075_5028_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__557411_652060",
+      "question": "Who is the spouse of the creator of The Nanny Reunion: A Nosh to Remember?",
+      "answer": "peter marc jacobson",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__557411_652060_p11",
+        "2hop__557411_652060_p19"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__557411_652060_p0",
+          0.0
+        ],
+        [
+          "2hop__557411_652060_p1",
+          0.0
+        ],
+        [
+          "2hop__557411_652060_p2",
+          0.0
+        ],
+        [
+          "2hop__557411_652060_p3",
+          0.0
+        ],
+        [
+          "2hop__557411_652060_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__677929_696450",
+      "question": "Who founded the publisher of The Final Testament of the Holy Bible?",
+      "answer": "larry gagosian",
+      "found_at": 4,
+      "gold_ids": [
+        "2hop__677929_696450_p3",
+        "2hop__677929_696450_p8"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__677929_696450_p0",
+          0.0
+        ],
+        [
+          "2hop__677929_696450_p1",
+          0.0
+        ],
+        [
+          "2hop__677929_696450_p2",
+          0.0
+        ],
+        [
+          "2hop__677929_696450_p3",
+          0.0
+        ],
+        [
+          "2hop__677929_696450_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__132909_33564",
+      "question": "During which era was the company that makes Nirbhay founded?",
+      "answer": "from the 1950s to the 1970s",
+      "found_at": 8,
+      "gold_ids": [
+        "2hop__132909_33564_p6",
+        "2hop__132909_33564_p7"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__132909_33564_p0",
+          0.0
+        ],
+        [
+          "2hop__132909_33564_p1",
+          0.0
+        ],
+        [
+          "2hop__132909_33564_p2",
+          0.0
+        ],
+        [
+          "2hop__132909_33564_p3",
+          0.0
+        ],
+        [
+          "2hop__132909_33564_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__199216_33564",
+      "question": "During what era was the manufacturer of Agni-V founded?",
+      "answer": "from the 1950s to the 1970s",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__199216_33564_p15",
+        "2hop__199216_33564_p16"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__199216_33564_p0",
+          0.0
+        ],
+        [
+          "2hop__199216_33564_p1",
+          0.0
+        ],
+        [
+          "2hop__199216_33564_p2",
+          0.0
+        ],
+        [
+          "2hop__199216_33564_p3",
+          0.0
+        ],
+        [
+          "2hop__199216_33564_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__133241_33564",
+      "question": "In what era was the company known as the manufacturer of Agni-V founded?",
+      "answer": "from the 1950s to the 1970s",
+      "found_at": 7,
+      "gold_ids": [
+        "2hop__133241_33564_p2",
+        "2hop__133241_33564_p6"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__133241_33564_p0",
+          0.0
+        ],
+        [
+          "2hop__133241_33564_p1",
+          0.0
+        ],
+        [
+          "2hop__133241_33564_p2",
+          0.0
+        ],
+        [
+          "2hop__133241_33564_p3",
+          0.0
+        ],
+        [
+          "2hop__133241_33564_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__636597_480615",
+      "question": "What city is located in the county containing Qiantong?",
+      "answer": "ningbo",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__636597_480615_p10",
+        "2hop__636597_480615_p13"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__636597_480615_p0",
+          0.0
+        ],
+        [
+          "2hop__636597_480615_p1",
+          0.0
+        ],
+        [
+          "2hop__636597_480615_p2",
+          0.0
+        ],
+        [
+          "2hop__636597_480615_p3",
+          0.0
+        ],
+        [
+          "2hop__636597_480615_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__373759_136043",
+      "question": "What is the performer of Heartbeat named after?",
+      "answer": "natalie albino",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__373759_136043_p4",
+        "2hop__373759_136043_p12"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__373759_136043_p0",
+          0.0
+        ],
+        [
+          "2hop__373759_136043_p1",
+          0.0
+        ],
+        [
+          "2hop__373759_136043_p2",
+          0.0
+        ],
+        [
+          "2hop__373759_136043_p3",
+          0.0
+        ],
+        [
+          "2hop__373759_136043_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__709357_136043",
+      "question": "The Move Ya Body song's band is named after who?",
+      "answer": "natalie albino",
+      "found_at": 10,
+      "gold_ids": [
+        "2hop__709357_136043_p7",
+        "2hop__709357_136043_p9"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__709357_136043_p0",
+          0.0
+        ],
+        [
+          "2hop__709357_136043_p1",
+          0.0
+        ],
+        [
+          "2hop__709357_136043_p2",
+          0.0
+        ],
+        [
+          "2hop__709357_136043_p3",
+          0.0
+        ],
+        [
+          "2hop__709357_136043_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__32254_84601",
+      "question": "When did the spacecraft that detected storms on Neptune leave our solar system?",
+      "answer": "august 30, 2007",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__32254_84601_p8",
+        "2hop__32254_84601_p10"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__32254_84601_p0",
+          0.0
+        ],
+        [
+          "2hop__32254_84601_p1",
+          0.0
+        ],
+        [
+          "2hop__32254_84601_p2",
+          0.0
+        ],
+        [
+          "2hop__32254_84601_p3",
+          0.0
+        ],
+        [
+          "2hop__32254_84601_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__471509_136043",
+      "question": "The Nicole and Natalie album's band is named after who?",
+      "answer": "natalie albino",
+      "found_at": 6,
+      "gold_ids": [
+        "2hop__471509_136043_p5",
+        "2hop__471509_136043_p19"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__471509_136043_p0",
+          0.0
+        ],
+        [
+          "2hop__471509_136043_p1",
+          0.0
+        ],
+        [
+          "2hop__471509_136043_p2",
+          0.0
+        ],
+        [
+          "2hop__471509_136043_p3",
+          0.0
+        ],
+        [
+          "2hop__471509_136043_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__87589_362941",
+      "question": "Where was the founder of the National Women's Party born?",
+      "answer": "mount laurel township",
+      "found_at": 5,
+      "gold_ids": [
+        "2hop__87589_362941_p4",
+        "2hop__87589_362941_p11"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__87589_362941_p0",
+          0.0
+        ],
+        [
+          "2hop__87589_362941_p1",
+          0.0
+        ],
+        [
+          "2hop__87589_362941_p2",
+          0.0
+        ],
+        [
+          "2hop__87589_362941_p3",
+          0.0
+        ],
+        [
+          "2hop__87589_362941_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__61318_362941",
+      "question": "What is the place of birth of the person who submitted the first version of the equal rights amendment to congress in 1923?",
+      "answer": "mount laurel township",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__61318_362941_p0",
+        "2hop__61318_362941_p18"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__61318_362941_p0",
+          0.0
+        ],
+        [
+          "2hop__61318_362941_p1",
+          0.0
+        ],
+        [
+          "2hop__61318_362941_p2",
+          0.0
+        ],
+        [
+          "2hop__61318_362941_p3",
+          0.0
+        ],
+        [
+          "2hop__61318_362941_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__20268_42004",
+      "question": "The Directory of Public Worship was approved by a parliament whose modern equivalent has been based where since 2004?",
+      "answer": "scottish parliament building",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__20268_42004_p13",
+        "2hop__20268_42004_p16"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__20268_42004_p0",
+          0.0
+        ],
+        [
+          "2hop__20268_42004_p1",
+          0.0
+        ],
+        [
+          "2hop__20268_42004_p2",
+          0.0
+        ],
+        [
+          "2hop__20268_42004_p3",
+          0.0
+        ],
+        [
+          "2hop__20268_42004_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__159902_362941",
+      "question": "Where was the person featured on the Chester Arthur coin born?",
+      "answer": "mount laurel township",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__159902_362941_p14",
+        "2hop__159902_362941_p19"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__159902_362941_p0",
+          0.0
+        ],
+        [
+          "2hop__159902_362941_p1",
+          0.0
+        ],
+        [
+          "2hop__159902_362941_p2",
+          0.0
+        ],
+        [
+          "2hop__159902_362941_p3",
+          0.0
+        ],
+        [
+          "2hop__159902_362941_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__42027_42004",
+      "question": "Since 2004, what is the location of the body to which, if a matter is not specifically reserved, it is devolved?",
+      "answer": "scottish parliament building",
+      "found_at": 4,
+      "gold_ids": [
+        "2hop__42027_42004_p3",
+        "2hop__42027_42004_p7"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__42027_42004_p0",
+          0.0
+        ],
+        [
+          "2hop__42027_42004_p1",
+          0.0
+        ],
+        [
+          "2hop__42027_42004_p2",
+          0.0
+        ],
+        [
+          "2hop__42027_42004_p3",
+          0.0
+        ],
+        [
+          "2hop__42027_42004_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__648648_173389",
+      "question": "The city which contains Broadhurst Park shares a border with what town?",
+      "answer": "middleton",
+      "found_at": 7,
+      "gold_ids": [
+        "2hop__648648_173389_p6",
+        "2hop__648648_173389_p11"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__648648_173389_p0",
+          0.0
+        ],
+        [
+          "2hop__648648_173389_p1",
+          0.0
+        ],
+        [
+          "2hop__648648_173389_p2",
+          0.0
+        ],
+        [
+          "2hop__648648_173389_p3",
+          0.0
+        ],
+        [
+          "2hop__648648_173389_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__477492_240386",
+      "question": "What is the record label of the Metalworks Studio founder?",
+      "answer": "tml entertainment",
+      "found_at": 2,
+      "gold_ids": [
+        "2hop__477492_240386_p1",
+        "2hop__477492_240386_p9"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__477492_240386_p0",
+          0.0
+        ],
+        [
+          "2hop__477492_240386_p1",
+          0.0
+        ],
+        [
+          "2hop__477492_240386_p2",
+          0.0
+        ],
+        [
+          "2hop__477492_240386_p3",
+          0.0
+        ],
+        [
+          "2hop__477492_240386_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__776377_857193",
+      "question": "What is the mouth of watercourse for the body of water where Bartram's Covered Bridge is located?",
+      "answer": "delaware river",
+      "found_at": 10,
+      "gold_ids": [
+        "2hop__776377_857193_p9",
+        "2hop__776377_857193_p18"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__776377_857193_p0",
+          0.0
+        ],
+        [
+          "2hop__776377_857193_p1",
+          0.0
+        ],
+        [
+          "2hop__776377_857193_p2",
+          0.0
+        ],
+        [
+          "2hop__776377_857193_p3",
+          0.0
+        ],
+        [
+          "2hop__776377_857193_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__29752_814677",
+      "question": "What is the ruler of the underworld in ancient Egypt a part of?",
+      "answer": "ancient egyptian religion",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__29752_814677_p9",
+        "2hop__29752_814677_p17"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__29752_814677_p0",
+          0.0
+        ],
+        [
+          "2hop__29752_814677_p1",
+          0.0
+        ],
+        [
+          "2hop__29752_814677_p2",
+          0.0
+        ],
+        [
+          "2hop__29752_814677_p3",
+          0.0
+        ],
+        [
+          "2hop__29752_814677_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__77601_814677",
+      "question": "What pantheon is the God of the underworld in ancient Egypt a part of?",
+      "answer": "ancient egyptian religion",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__77601_814677_p10",
+        "2hop__77601_814677_p11"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__77601_814677_p0",
+          0.0
+        ],
+        [
+          "2hop__77601_814677_p1",
+          0.0
+        ],
+        [
+          "2hop__77601_814677_p2",
+          0.0
+        ],
+        [
+          "2hop__77601_814677_p3",
+          0.0
+        ],
+        [
+          "2hop__77601_814677_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__497191_129669",
+      "question": "In which district was Alhandra born?",
+      "answer": "lisbon district",
+      "found_at": 4,
+      "gold_ids": [
+        "2hop__497191_129669_p3",
+        "2hop__497191_129669_p19"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__497191_129669_p0",
+          0.0
+        ],
+        [
+          "2hop__497191_129669_p1",
+          0.0
+        ],
+        [
+          "2hop__497191_129669_p2",
+          0.0
+        ],
+        [
+          "2hop__497191_129669_p3",
+          0.0
+        ],
+        [
+          "2hop__497191_129669_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__311694_129669",
+      "question": "In which state is Vera Barbosa's place of birth located?",
+      "answer": "lisbon district",
+      "found_at": 6,
+      "gold_ids": [
+        "2hop__311694_129669_p5",
+        "2hop__311694_129669_p6"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__311694_129669_p0",
+          0.0
+        ],
+        [
+          "2hop__311694_129669_p1",
+          0.0
+        ],
+        [
+          "2hop__311694_129669_p2",
+          0.0
+        ],
+        [
+          "2hop__311694_129669_p3",
+          0.0
+        ],
+        [
+          "2hop__311694_129669_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__819974_129669",
+      "question": "In which state is P\u00f3voa de Santa Iria's municipality located?",
+      "answer": "lisbon district",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__819974_129669_p13",
+        "2hop__819974_129669_p17"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__819974_129669_p0",
+          0.0
+        ],
+        [
+          "2hop__819974_129669_p1",
+          0.0
+        ],
+        [
+          "2hop__819974_129669_p2",
+          0.0
+        ],
+        [
+          "2hop__819974_129669_p3",
+          0.0
+        ],
+        [
+          "2hop__819974_129669_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__199513_13732",
+      "question": "How old was Mary when engaged to the person from whom S\u00e3o Jos\u00e9 dos Campos takes it's name?",
+      "answer": "12\u201314 years old",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__199513_13732_p18",
+        "2hop__199513_13732_p19"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__199513_13732_p0",
+          0.0
+        ],
+        [
+          "2hop__199513_13732_p1",
+          0.0
+        ],
+        [
+          "2hop__199513_13732_p2",
+          0.0
+        ],
+        [
+          "2hop__199513_13732_p3",
+          0.0
+        ],
+        [
+          "2hop__199513_13732_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__13731_801817",
+      "question": "Where was Mary's betrothed born?",
+      "answer": "nazareth",
+      "found_at": 5,
+      "gold_ids": [
+        "2hop__13731_801817_p4",
+        "2hop__13731_801817_p11"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__13731_801817_p0",
+          0.0
+        ],
+        [
+          "2hop__13731_801817_p1",
+          0.0
+        ],
+        [
+          "2hop__13731_801817_p2",
+          0.0
+        ],
+        [
+          "2hop__13731_801817_p3",
+          0.0
+        ],
+        [
+          "2hop__13731_801817_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__865961_159109",
+      "question": "Where is the country with ISO code ISO 3166-2:CV located?",
+      "answer": "central atlantic ocean",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__865961_159109_p11",
+        "2hop__865961_159109_p13"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__865961_159109_p0",
+          0.0
+        ],
+        [
+          "2hop__865961_159109_p1",
+          0.0
+        ],
+        [
+          "2hop__865961_159109_p2",
+          0.0
+        ],
+        [
+          "2hop__865961_159109_p3",
+          0.0
+        ],
+        [
+          "2hop__865961_159109_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__728887_159109",
+      "question": "Where is Assomada located?",
+      "answer": "central atlantic ocean",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__728887_159109_p4",
+        "2hop__728887_159109_p11"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__728887_159109_p0",
+          0.0
+        ],
+        [
+          "2hop__728887_159109_p1",
+          0.0
+        ],
+        [
+          "2hop__728887_159109_p2",
+          0.0
+        ],
+        [
+          "2hop__728887_159109_p3",
+          0.0
+        ],
+        [
+          "2hop__728887_159109_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__827995_159109",
+      "question": "Where is Am\u00edlcar Cabral International Airport?",
+      "answer": "central atlantic ocean",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__827995_159109_p17",
+        "2hop__827995_159109_p19"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__827995_159109_p0",
+          0.0
+        ],
+        [
+          "2hop__827995_159109_p1",
+          0.0
+        ],
+        [
+          "2hop__827995_159109_p2",
+          0.0
+        ],
+        [
+          "2hop__827995_159109_p3",
+          0.0
+        ],
+        [
+          "2hop__827995_159109_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__159215_779396",
+      "question": "Where was the person who wrote about the rioting being a dividing factor in Birmingham educated?",
+      "answer": "university of glasgow",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__159215_779396_p8",
+        "2hop__159215_779396_p14"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__159215_779396_p0",
+          0.0
+        ],
+        [
+          "2hop__159215_779396_p1",
+          0.0
+        ],
+        [
+          "2hop__159215_779396_p2",
+          0.0
+        ],
+        [
+          "2hop__159215_779396_p3",
+          0.0
+        ],
+        [
+          "2hop__159215_779396_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__119423_779396",
+      "question": "Where was the designer of the Lap Engine educated?",
+      "answer": "university of glasgow",
+      "found_at": 10,
+      "gold_ids": [
+        "2hop__119423_779396_p14",
+        "2hop__119423_779396_p16"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__119423_779396_p0",
+          0.0
+        ],
+        [
+          "2hop__119423_779396_p1",
+          0.0
+        ],
+        [
+          "2hop__119423_779396_p2",
+          0.0
+        ],
+        [
+          "2hop__119423_779396_p3",
+          0.0
+        ],
+        [
+          "2hop__119423_779396_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__115515_779396",
+      "question": "Where was the creator of the Lap Engine educated?",
+      "answer": "university of glasgow",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__115515_779396_p3",
+        "2hop__115515_779396_p18"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__115515_779396_p0",
+          0.0
+        ],
+        [
+          "2hop__115515_779396_p1",
+          0.0
+        ],
+        [
+          "2hop__115515_779396_p2",
+          0.0
+        ],
+        [
+          "2hop__115515_779396_p3",
+          0.0
+        ],
+        [
+          "2hop__115515_779396_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__665660_135481",
+      "question": "The 1967 Federation Cup is an instance of this tournament which is named after what organization?",
+      "answer": "international tennis federation",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__665660_135481_p10",
+        "2hop__665660_135481_p16"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__665660_135481_p0",
+          0.0
+        ],
+        [
+          "2hop__665660_135481_p1",
+          0.0
+        ],
+        [
+          "2hop__665660_135481_p2",
+          0.0
+        ],
+        [
+          "2hop__665660_135481_p3",
+          0.0
+        ],
+        [
+          "2hop__665660_135481_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__201704_135481",
+      "question": "What is the competition that the 1965 Federation Cup is part of named after?",
+      "answer": "international tennis federation",
+      "found_at": null,
+      "gold_ids": [
+        "2hop__201704_135481_p8",
+        "2hop__201704_135481_p16"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__201704_135481_p0",
+          0.0
+        ],
+        [
+          "2hop__201704_135481_p1",
+          0.0
+        ],
+        [
+          "2hop__201704_135481_p2",
+          0.0
+        ],
+        [
+          "2hop__201704_135481_p3",
+          0.0
+        ],
+        [
+          "2hop__201704_135481_p4",
+          0.0
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__861157_135481",
+      "question": "What is the competition the 1972 Federation Cup is part of named after?",
+      "answer": "international tennis federation",
+      "found_at": 7,
+      "gold_ids": [
+        "2hop__861157_135481_p10",
+        "2hop__861157_135481_p19"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__861157_135481_p5",
+          0.5024405134484033
+        ],
+        [
+          "2hop__861157_135481_p6",
+          0.004380129260797278
+        ],
+        [
+          "2hop__861157_135481_p3",
+          0.004372107917218873
+        ],
+        [
+          "2hop__861157_135481_p15",
+          0.004293966324885213
+        ],
+        [
+          "2hop__861157_135481_p14",
+          0.004141623858495077
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__495316_660579",
+      "question": "What is the capital of the county which contains Hickory Grove Estates, Mississippi?",
+      "answer": "starkville",
+      "found_at": 3,
+      "gold_ids": [
+        "2hop__495316_660579_p0",
+        "2hop__495316_660579_p15"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__495316_660579_p0",
+          0.3100568071960934
+        ],
+        [
+          "2hop__495316_660579_p7",
+          0.3014009402371462
+        ],
+        [
+          "2hop__495316_660579_p15",
+          0.07377840755658269
+        ],
+        [
+          "2hop__495316_660579_p19",
+          0.005616832353075235
+        ],
+        [
+          "2hop__495316_660579_p14",
+          0.005491830424198734
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__478978_124498",
+      "question": "Who is the father of the performer of Je dis aime?",
+      "answer": "louis chedid",
+      "found_at": 6,
+      "gold_ids": [
+        "2hop__478978_124498_p2",
+        "2hop__478978_124498_p16"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__478978_124498_p7",
+          0.17120300948030778
+        ],
+        [
+          "2hop__478978_124498_p15",
+          0.17106947113192683
+        ],
+        [
+          "2hop__478978_124498_p16",
+          0.16925891327843304
+        ],
+        [
+          "2hop__478978_124498_p14",
+          0.015272709478575584
+        ],
+        [
+          "2hop__478978_124498_p0",
+          0.015272709478575584
+        ]
+      ]
+    },
+    {
+      "query_id": "2hop__543853_124498",
+      "question": "Who is the father of the Labo M performer?",
+      "answer": "louis chedid",
+      "found_at": 4,
+      "gold_ids": [
+        "2hop__543853_124498_p5",
+        "2hop__543853_124498_p13"
+      ],
+      "ranked_top5": [
+        [
+          "2hop__543853_124498_p18",
+          0.25739352909027835
+        ],
+        [
+          "2hop__543853_124498_p16",
+          0.25739352909027835
+        ],
+        [
+          "2hop__543853_124498_p13",
+          0.25351121361435314
+        ],
+        [
+          "2hop__543853_124498_p5",
+          0.009705086322383287
+        ],
+        [
+          "2hop__543853_124498_p12",
+          0.009705086322383287
+        ]
+      ]
+    }
+  ]
+}

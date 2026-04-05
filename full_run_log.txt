@@ -1,0 +1,12 @@
+
+================================================================================
+FULL PIPELINE TEST: Data Loading -> Extraction -> Graph Building -> Evaluation
+================================================================================
+
+STEP 1: Loading MusiQue dataset...
+  Loaded 2417 QA pairs from dev set
+  Unique passages   : 48315
+  Queries with gold : 2417
+  Time              : 0.13s
+
+STEP 2: Extracting triples from passages...

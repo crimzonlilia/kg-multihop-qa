@@ -244,16 +244,40 @@ def cluster_relations(candidates: list[str],
 
 def build_expanded_schema(discovered: dict[str, list[str]],
                            freq: Counter,
-                           min_cluster_freq: int = 10) -> dict[str, str]:
-    """Seed schema + discovered clusters đủ lớn."""
+                           min_cluster_freq: int = 10,
+                           dedup_threshold: float = 0.75) -> dict[str, str]:
+    """Seed schema + discovered clusters đủ lớn, loại redundant với seed."""
     expanded = dict(SEED_SCHEMA)
 
-    added = 0
+    # Relations that are too generic / not useful as KG hops
+    NOISE_RELATIONS = {
+        "spend", "spruce", "invade", "enter", "meet", "die", "replace",
+        "represent", "merge_in", "cede_to", "grow_in",
+        # near-synonyms of seed (catch what embedding misses)
+        "bear_in", "locate_in", "die_in", "educate_at",
+    }
+
+    # Embed seed relation names once for dedup comparison
+    seed_keys = list(SEED_SCHEMA.keys())
+    seed_embs = embedder.encode(seed_keys, normalize_embeddings=True)  # (n_seed, dim)
+
+    added = skipped_freq = skipped_dup = 0
     for canonical, surface_forms in discovered.items():
         total_freq = sum(freq[r] for r in surface_forms)
         if total_freq < min_cluster_freq:
+            skipped_freq += 1
             continue
-        if canonical in expanded:
+        if canonical in expanded or canonical in NOISE_RELATIONS:
+            skipped_dup += 1
+            continue
+
+        # Semantic dedup: skip if too similar to any existing seed relation
+        cand_emb = embedder.encode([canonical], normalize_embeddings=True)  # (1, dim)
+        sims = (seed_embs @ cand_emb.T).flatten()  # cosine sim via dot (normalized)
+        if sims.max() >= dedup_threshold:
+            most_similar = seed_keys[int(sims.argmax())]
+            print(f"  [~] {canonical:20s} ~= {most_similar} (sim={sims.max():.2f}) skip")
+            skipped_dup += 1
             continue
 
         desc = f"Relation expressed as: {', '.join(surface_forms[:4])}"
@@ -261,7 +285,8 @@ def build_expanded_schema(discovered: dict[str, list[str]],
         print(f"  [+] {canonical:20s} freq={total_freq:4d}  forms={surface_forms[:3]}")
         added += 1
 
-    print(f"\nSchema: {len(SEED_SCHEMA)} seed → {len(expanded)} total (+{added} new)")
+    print(f"\nSchema: {len(SEED_SCHEMA)} seed -> {len(expanded)} total "
+          f"(+{added} new, {skipped_dup} deduped/noise, {skipped_freq} low-freq)")
     return expanded
 
 

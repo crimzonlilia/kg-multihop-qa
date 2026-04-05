@@ -10,27 +10,83 @@ logger = logging.getLogger(__name__)
 ENTITY_LABELS = ["person", "organization", "location", "event", "role"]
 
 DEFAULT_RELATION_SCHEMA = {
+    # Basic biographical
     "born_in": "Person was born in a location",
     "died_in": "Person died in a location",
+    "nationality": "Person's nationality or country",
+    "known_for": "Person is known for something",
+    
+    # Family relations
+    "child_of": "Person is child of another person",
+    "spouse_of": "Person is spouse of another person",
+    
+    # Organization relations
     "founded_by": "Organization was founded by a person",
+    "founded": "Organization was founded in a location",
     "located_in": "Entity located in a place",
     "part_of": "Organization is part of another organization",
-    "occurred_in": "Event occurred in a location",
-    "educated_at": "Person studied at an organization",
+    "leader_of": "Person is leader of organization",
+    "acquired_by": "Organization was acquired by another organization",
+    "subsidiary_of": "Organization is subsidiary of another organization",
+    
+    # Work relations
     "worked_at": "Person worked at an organization",
+    "educated_at": "Person studied at an organization",
     "member_of": "Person is member of an organization",
+    "directed_by": "Work was directed by a person",
+    "written_by": "Work was written by a person",
+    "composed_by": "Music was composed by a person",
+    "performed_by": "Work was performed by a person/artist",
+    "acted_in": "Actor acted in a work",
+    
+    # Event and work details
+    "occurred_in": "Event occurred in a location",
+    "released_in": "Work was released in a location or time",
+    "awarded": "Person or work won an award",
+    "language": "Work is in a particular language",
+    "genre": "Work belongs to a genre",
+    "influenced_by": "Person or work was influenced by another",
+    "capital_of": "City is capital of a country",
 }
 
 TYPE_CONSTRAINTS = {
+    # Basic biographical
     "born_in": ("person", ["location"]),
     "died_in": ("person", ["location"]),
-    "founded_by": (None, None),
+    "nationality": ("person", ["location", "organization"]),
+    "known_for": (None, None),
+    
+    # Family relations
+    "child_of": ("person", ["person"]),
+    "spouse_of": ("person", ["person"]),
+    
+    # Organization relations
+    "founded_by": ("organization", ["person"]),
+    "founded": ("organization", ["location"]),
     "located_in": (None, ["location"]),
     "part_of": ("organization", ["organization"]),
-    "occurred_in": (None, ["location"]),
-    "educated_at": ("person", ["organization"]),
+    "leader_of": ("person", ["organization"]),
+    "acquired_by": ("organization", ["organization"]),
+    "subsidiary_of": ("organization", ["organization"]),
+    
+    # Work relations
     "worked_at": ("person", ["organization"]),
+    "educated_at": ("person", ["organization"]),
     "member_of": ("person", ["organization"]),
+    "directed_by": (None, ["person"]),
+    "written_by": (None, ["person"]),
+    "composed_by": (None, ["person"]),
+    "performed_by": (None, ["person"]),
+    "acted_in": ("person", None),
+    
+    # Event and work details
+    "occurred_in": (None, ["location"]),
+    "released_in": (None, None),
+    "awarded": (None, None),
+    "language": (None, ["location"]),
+    "genre": (None, None),
+    "influenced_by": (None, None),
+    "capital_of": ("location", ["location"]),
 }
 
 # Schema caching

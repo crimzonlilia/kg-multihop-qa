@@ -1,0 +1,103 @@
+Loading data...
+Loaded 200 samples, graph has 9535 nodes
+
+======================================================================
+GRAPH STATISTICS
+======================================================================
+Nodes: 9535
+Edges: 15114
+Components: 2572
+Average degree: 3.17
+
+======================================================================
+DEBUG: First 3 samples
+======================================================================
+
+Sample 1: Who is the spouse of the Green performer?...
+Expected answer: Miquette Giraudy
+Query entities found: ['henry green', 'german green party', 'green bay', 'greenwood laboratory school', 'greenwich village district']
+Top-10 results:
+  1. [ ] united states (0.4894)
+  2. [ ] georgia (0.1068)
+  3. [ ] 1948 (0.0426)
+  4. [ ] greenwood laboratory school (0.0377)
+  5. [ ] atlanta (0.0326)
+  6. [ ] henry green (0.0316)
+  7. [ ] plane space (0.0300)
+  8. [ ] german green party (0.0272)
+  9. [ ] greenwich village district (0.0216)
+  10. [ ] concluding (0.0207)
+
+Sample 2: Who founded the company that distributed the film UHF?...
+Expected answer: Mike Medavoy
+Query entities found: ['for those who think young', 'harold newhouser']
+Top-10 results:
+  1. [ ] detroit tigers (0.1455)
+  2. [ ] harold newhouser (0.1042)
+  3. [ ] don draper (0.1024)
+  4. [ ] for those who think young (0.0860)
+  5. [ ] cleveland indians (0.0719)
+  6. [ ] baseball (0.0696)
+  7. [ ] anna draper (0.0570)
+  8. [ ] michael clete thomas (0.0563)
+  9. [ ] jeffrey david larish (0.0547)
+  10. [ ] mayakovsky (0.0520)
+
+Sample 3: What administrative territorial entity is the owner of Ciuda...
+Expected answer: Tamaulipas
+Query entities found: ["what's bred in the bone", 'what a beautiful name', 'ciudad juárez', "what's in it for me"]
+Top-10 results:
+  1. [ ] united states (0.3021)
+  2. [ ] american (0.1072)
+  3. [ ] stephen jesse jackson (0.0361)
+  4. [ ] what a beautiful name (0.0317)
+  5. [ ] joshua aaron anderson (0.0302)
+  6. [ ] john doby kennedy (0.0301)
+  7. [ ] macmillan of canada (0.0298)
+  8. [ ] what's in it for me (0.0259)
+  9. [ ] ciudad juárez (0.0257)
+  10. [ ] martha anne smith (0.0242)
+
+======================================================================
+EVALUATION
+======================================================================
+[20] Q: In which county is Kimbrough Memorial Stadium loca...
+     Gold: Randall County | Hit: ✗
+[40] Q: Who is the child of the person who followed Tihomi...
+     Gold: Saint Sava | Hit: ✗
+[60] Q: What award was received by the person who authored...
+     Gold: Nobel Prize in Literature | Hit: ✗
+[80] Q: What is the record label of the Metalworks Studio ...
+     Gold: TML Entertainment | Hit: ✗
+[100] Q: Who is the father of the Labo M performer?...
+     Gold: Louis Chedid | Hit: ✗
+[120] Q: When did the military instruction start in the uni...
+     Gold: 1912 | Hit: ✗
+[140] Q: Who married the publisher of abolitionist newspape...
+     Gold: Helen Pitts Douglass | Hit: ✗
+[160] Q: What recognition did the Jack Goes Boating directo...
+     Gold: nominated for an Academy Award for Best Supporting Actor | Hit: ✗
+[180] Q: When was John's eldest son crowned?...
+     Gold: 1216 | Hit: ✗
+[200] Q: What team drafted the winner of the NBA scoring ti...
+     Gold: Oklahoma City Thunder | Hit: ✗
+
+======================================================================
+OVERALL RESULTS
+======================================================================
+Coverage (evaluated): 196/200 (98.0%)
+Skipped: 4 (no query entities)
+
+Hit@10 (FIXED):      6/196 (3.1%)
+
+======================================================================
+HOP-BY-HOP ANALYSIS
+======================================================================
+2-hop: 6/200 (3.0%)
+
+======================================================================
+TIMING INFORMATION
+======================================================================
+Evaluation time: 72.01s
+Total time: 73.44s
+Timestamp: 2026-04-04 19:15:16

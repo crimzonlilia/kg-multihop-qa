@@ -2,6 +2,20 @@
 
 import logging
 import torch
+import sys
+import io
+
+try:
+    torch.set_float32_matmul_precision("high")
+except Exception:
+    pass
+
+if torch.cuda.is_available():
+    torch.backends.cudnn.benchmark = True
+    if hasattr(torch.backends.cuda.matmul, "allow_tf32"):
+        torch.backends.cuda.matmul.allow_tf32 = True
+    if hasattr(torch.backends.cudnn, "allow_tf32"):
+        torch.backends.cudnn.allow_tf32 = True
 
 logger = logging.getLogger(__name__)
 
@@ -40,8 +54,16 @@ def get_extractor(model_name: str = MODEL_NAME):
         device = "cuda" if torch.cuda.is_available() else "cpu"
         logger.info(f"  Device: {device}")
         
-        # Load model
-        _EXTRACTOR_CACHE = GLiNER2.from_pretrained(model_name)
+        # Load model (suppress stdout to avoid emoji icon errors on Windows)
+        try:
+            old_stdout = sys.stdout
+            sys.stdout = io.StringIO()  # Suppress print statements
+            _EXTRACTOR_CACHE = GLiNER2.from_pretrained(model_name)
+            sys.stdout = old_stdout
+        except Exception as e:
+            sys.stdout = old_stdout
+            raise
+        
         _EXTRACTOR_CACHE = _EXTRACTOR_CACHE.to(device)
         
         # Apply GPU optimizations if available
@@ -66,7 +88,13 @@ def get_embedder(model_name: str = EMBEDDER_MODEL):
             raise ImportError("SentenceTransformer not installed. Install with: pip install sentence-transformers")
         
         logger.info(f"Loading SentenceTransformer: {model_name}")
-        _EMBEDDER_CACHE = SentenceTransformer(model_name)
+        # Suppress stdout to avoid verbose output
+        old_stdout = sys.stdout
+        sys.stdout = io.StringIO()
+        try:
+            _EMBEDDER_CACHE = SentenceTransformer(model_name)
+        finally:
+            sys.stdout = old_stdout
     
     return _EMBEDDER_CACHE
 
