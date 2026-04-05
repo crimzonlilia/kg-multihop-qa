@@ -2,6 +2,7 @@ data/raw/musique/
 data/cache/
 data/processed/
 reports/
+docs/
 
 # Local generated outputs
 *.log
