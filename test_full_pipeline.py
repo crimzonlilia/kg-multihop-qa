@@ -3,7 +3,9 @@ Full end-to-end pipeline test from data loading to evaluation.
 Tests with DATA_LIMIT samples. Evaluation metric: AiC@k (Answer-in-Context).
 """
 
+import argparse
 import json
+import shutil
 import sys
 import time
 import ctypes
@@ -21,31 +23,58 @@ if sys.platform == "win32":
     )
 
 from src.extraction.extract_triples import extract_triples_batch, DEFAULT_RELATION_SCHEMA
-from src.graph.build_graph import build_graph, merge_graphs, normalize
+from src.graph.build_graph import build_graph, merge_graphs, normalize, save_graph
 from src.retrieval.pagerank import rank_passages_by_ppr
 from src.data.musique_loader import load_musique
+from src.cache_utils import (
+    build_graph_output_path,
+    infer_sample_limit_from_cache_name,
+    infer_triples_cache_name,
+)
+from src.console_utils import configure_console_output
 import networkx as nx
+
+configure_console_output()
+
+
+def _parse_args():
+    parser = argparse.ArgumentParser(description="Run a quick or full KG pipeline evaluation.")
+    parser.add_argument("--samples", type=int, default=None, help="Limit QA pairs, e.g. 3 for a smoke test.")
+    parser.add_argument("--queries", type=int, default=None, help="Limit number of evaluation queries.")
+    parser.add_argument("--cache", type=str, default=None, help="Named triples cache to use/save, e.g. 3, 300, full.")
+    parser.add_argument("--top-k", type=int, default=10, help="Retrieve top-k passages per query.")
+    parser.add_argument("--embed-model", type=str, default="minilm", help="Embedding model alias, e.g. minilm or bge-small.")
+    return parser.parse_args()
+
+
+ARGS = _parse_args()
 
 print("\n" + "=" * 80)
 print("FULL PIPELINE TEST: Data Loading -> Extraction -> Graph Building -> Evaluation")
 print("=" * 80)
 
 # -- Configuration -----
-DATA_LIMIT      = None  # None = full dataset (2417 QA pairs, ~48K passages)
-SAMPLE_QUERIES  = None  # None = evaluate all queries
-TOP_K           = 10    # retrieve top-k passages per query
+INFERRED_SAMPLE_LIMIT = ARGS.samples if ARGS.samples is not None else infer_sample_limit_from_cache_name(ARGS.cache)
+DATA_LIMIT      = INFERRED_SAMPLE_LIMIT  # None = full dataset (2417 QA pairs, ~48K passages)
+SAMPLE_QUERIES  = ARGS.queries  # None = evaluate all queries from the selected dataset size
+TOP_K           = ARGS.top_k    # retrieve top-k passages per query
 PPR_TYPE        = "hipporag"  # "standard" | "hipporag" | "fast"
 RELATION_DISCOVERY = True   # Pass 0: discover schema from corpus before extraction
 PER_QUERY_GRAPH = True  # build a separate mini-graph per query to avoid
                         # entity ambiguity from unrelated QA pairs in the corpus
+EMBED_MODEL_NAME = ARGS.embed_model  # "minilm" | "bge-small" | "bge-base" | "e5-small" | "e5-base"
 EXTRACTION_BATCH_SIZE = 16  # RTX 2060-safe default
 REUSE_EXTRACTION_CACHE = True  # huge speed-up on reruns of the same corpus
 EXTRACT_ENTITY_TYPES = True    # set False for faster but slightly noisier extraction
+TRIPLES_CACHE_NAME = ARGS.cache or infer_triples_cache_name(DATA_LIMIT)  # full, 300, 3, ...
 # -----------------------
 
 # -- Step 1: Load data ---
 print("\nSTEP 1: Loading MusiQue dataset...")
 t0 = time.time()
+
+if ARGS.cache and ARGS.samples is None and DATA_LIMIT is not None:
+    print(f"  Sample limit inferred from cache '{ARGS.cache}': {DATA_LIMIT}")
 
 dev_data = load_musique("dev", max_samples=DATA_LIMIT)
 print(f"  Loaded {len(dev_data)} QA pairs from dev set")
@@ -121,6 +150,7 @@ if _torch.cuda.is_available():
 
 print(f"  Extraction cache  : {'ON' if REUSE_EXTRACTION_CACHE else 'OFF'}")
 print(f"  Entity filtering  : {'ON' if EXTRACT_ENTITY_TYPES else 'FAST MODE'}")
+print(f"  Triples cache     : triples_{TRIPLES_CACHE_NAME}.json")
 results_batch = extract_triples_batch(
     passage_texts,
     relation_schema=extraction_schema,
@@ -130,6 +160,7 @@ results_batch = extract_triples_batch(
     batch_size=EXTRACTION_BATCH_SIZE,
     save_cache_to_disk=REUSE_EXTRACTION_CACHE,
     extract_entities=EXTRACT_ENTITY_TYPES,
+    cache_name=TRIPLES_CACHE_NAME,
 )
 
 # Map extraction results back to passage IDs
@@ -184,6 +215,14 @@ print(f"  Nodes             : {final_graph.number_of_nodes()}")
 print(f"  Edges             : {final_graph.number_of_edges()}")
 print(f"  Time              : {merge_time:.2f}s")
 
+graph_output_path = build_graph_output_path(TRIPLES_CACHE_NAME)
+save_graph(final_graph, str(graph_output_path))
+print(f"  Saved graph       : {graph_output_path}")
+
+if str(graph_output_path) != "data/processed/kg.pkl":
+    shutil.copy(graph_output_path, "data/processed/kg.pkl")
+    print(f"  Updated graph alias: data/processed/kg.pkl")
+
 # -- Build triple_to_passages lookup ---
 # rank_passages_by_ppr needs {(s, r, o): [passage_ids]} to map nodes → passages
 triple_to_passages = defaultdict(list)   # {(s,r,o): [p_id]}
@@ -221,7 +260,12 @@ from src.retrieval.pagerank import (
     build_fact_embeddings,
     build_passage_embeddings,
     extract_entities_from_question,
+    set_embed_model,
+    get_embed_model_name,
 )
+
+set_embed_model(EMBED_MODEL_NAME)
+print(f"  Embed model      : {get_embed_model_name()}")
 
 t0 = time.time()
 node_embeddings = build_node_embeddings(final_graph)
@@ -403,6 +447,11 @@ with open(results_file, "w") as f:
             "merge":      merge_time,
             "retrieval":  retrieval_time,
             "total":      total_time,
+        },
+        "graph": {
+            "path": str(graph_output_path),
+            "nodes": final_graph.number_of_nodes(),
+            "edges": final_graph.number_of_edges(),
         },
         "evaluation": {
             "total_queries": total_queries,

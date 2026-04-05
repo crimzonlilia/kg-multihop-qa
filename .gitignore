@@ -1,5 +1,15 @@
 data/raw/musique/
 data/cache/
+data/processed/
+reports/
+
+# Local generated outputs
+*.log
+full_pipeline_results_*.json
+quick_quality_eval_*.json
+eval_passages*.txt
+eval_result*.txt
+test_output.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

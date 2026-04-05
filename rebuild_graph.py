@@ -20,11 +20,22 @@ from src.data.musique_loader import load_musique, get_all_passages
 from src.extraction.relation_discovery import run_discovery
 from src.extraction import extract_triples_batch, get_extractor
 from src.graph.build_graph import build_graph, save_graph, graph_stats
+from src.cache_utils import (
+    build_graph_output_path,
+    graph_backup_path_for,
+    infer_sample_limit_from_cache_name,
+    infer_triples_cache_name,
+    load_triples_cache,
+    resolve_triples_cache_path,
+)
+from src.console_utils import configure_console_output
 from gliner2 import GLiNER2
 import time
 import psutil
 
-GRAPH_PATH = "data/processed/kg.pkl"
+configure_console_output()
+
+GRAPH_PATH = "data/processed/kg.pkl"  # default alias for backward compatibility
 BACKUP_PATH = "data/processed/kg.pkl.backup"
 PROGRESS_FILE = Path("data/cache/progress.json")
 
@@ -59,16 +70,15 @@ def reset_progress():
         PROGRESS_FILE.unlink()
         print("✓ Progress file cleared - will start from beginning")
 
-def load_cached_triples():
-    """Load triples from existing cache (for graph-only mode)"""
-    cache_path = Path("data/cache/triples.json")
-    if not cache_path.exists():
+def load_cached_triples(cache_name=None):
+    """Load triples from a named cache (for graph-only mode)."""
+    try:
+        data, meta, cache_path = load_triples_cache(cache_name=cache_name)
+    except FileNotFoundError:
         return None
-    
-    print("\n📂 Loading triples from cache...")
-    with open(cache_path) as f:
-        data = json.load(f)
-    
+
+    print(f"\n📂 Loading triples from cache: {cache_path.name}...")
+
     all_triples = []
     all_entities = []
     for item in data:
@@ -77,11 +87,12 @@ def load_cached_triples():
                 all_triples.extend(item['triples'])
             if 'entities' in item:
                 all_entities.extend(item['entities'])
-    
-    print(f"   ✓ Loaded {len(all_triples)} triples from {len(data)} passages")
+
+    cache_label = meta.get('cache_name') or infer_triples_cache_name(cache_name)
+    print(f"   ✓ Loaded {len(all_triples)} triples from {len(data)} passages [{cache_label}]")
     return all_triples, all_entities
 
-def process_passages_in_batches(passages, relation_schema, extractor, batch_size=BATCH_SIZE):
+def process_passages_in_batches(passages, relation_schema, extractor, batch_size=BATCH_SIZE, cache_name=None):
     """Extract triples in batches to avoid memory spike - REUSE model"""
     all_results = []
     total_passages = len(passages)
@@ -97,6 +108,11 @@ def process_passages_in_batches(passages, relation_schema, extractor, batch_size
     start_idx = last_batch * batch_size
     if start_idx > 0:
         print(f"   📍 Resuming from batch {last_batch + 1} (skipping first {start_idx} passages)")
+    else:
+        target_cache = resolve_triples_cache_path(cache_name=cache_name, must_exist=False)
+        if target_cache.exists():
+            target_cache.unlink()
+            print(f"   ♻️ Reset existing cache: {target_cache.name}")
     
     for i in range(start_idx, total_passages, batch_size):
         batch = passages[i:i+batch_size]
@@ -107,14 +123,16 @@ def process_passages_in_batches(passages, relation_schema, extractor, batch_size
         
         # ← Extract with dynamic schema grouping (optimized batch processing)
         batch_results = extract_triples_batch(
-            batch, 
+            batch,
             relation_schema=relation_schema,
             use_dynamic=True,
             extractor=extractor,
             batch_size=min(64, len(batch)),  # Smaller batch size for dynamic (embeddings per batch)
             k=8,  # Select top-8 relations per passage
             skip_cache=True,  # Skip loading old cache within batch
-            save_cache_to_disk=True   # ← Save incrementally after each batch
+            save_cache_to_disk=True,  # Save incrementally after each batch
+            cache_name=cache_name,
+            merge_existing_cache=True,
         )
         all_results.extend(batch_results)
         
@@ -131,7 +149,9 @@ def process_passages_in_batches(passages, relation_schema, extractor, batch_size
     
     return all_results
 
-def main(graph_only=False):
+def main(graph_only=False, sample_limit=None, cache_name=None):
+    inferred_sample_limit = sample_limit if sample_limit is not None else infer_sample_limit_from_cache_name(cache_name)
+
     print("=" * 70)
     if graph_only:
         print("BUILDING GRAPH FROM CACHED TRIPLES (GRAPH-ONLY MODE)")
@@ -148,38 +168,47 @@ def main(graph_only=False):
         print(f"   Already processed: {progress['total_passages_processed']} passages")
         print(f"   Last updated: {progress.get('timestamp', 'unknown')}\n")
     
+    selected_cache_name = cache_name or infer_triples_cache_name(inferred_sample_limit)
+
+    graph_output_path = build_graph_output_path(selected_cache_name)
+    graph_backup_path = graph_backup_path_for(graph_output_path)
+
     print(f"  Optimization settings:")
     print(f"   Batch size: {BATCH_SIZE} passages per batch")
     print(f"   GC enabled: {ENABLE_GC}")
+    print(f"   Triples cache: triples_{selected_cache_name}.json")
+    print(f"   Graph output : {graph_output_path.name}")
     print(f"   Starting memory: {get_memory_usage():.0f}MB")
     
     # Backup old graph
-    if Path(GRAPH_PATH).exists():
+    if graph_output_path.exists():
         print(f"\n🔄 Backing up old graph...")
-        shutil.copy(GRAPH_PATH, BACKUP_PATH)
-        print(f"   Saved to: {BACKUP_PATH}")
+        shutil.copy(graph_output_path, graph_backup_path)
+        print(f"   Saved to: {graph_backup_path}")
     
     # SKIP extraction if graph-only mode
     if graph_only:
         print(f"\n📂 Loading cached triples...")
-        cached_data = load_cached_triples()
+        cached_data = load_cached_triples(cache_name=selected_cache_name)
         if cached_data is None:
-            print(f"   ❌ No cached triples at data/cache/triples.json")
+            print(f"   ❌ No cached triples found for: triples_{selected_cache_name}.json")
             print(f"   Run full rebuild first: python rebuild_graph.py")
             return
         all_triples, all_entities = cached_data
     else:
         # Load data
         print(f"\n📚 Loading data...")
-        QUICK_TEST = False  # ← Set to False for FULL dataset (~15-30 min)
-        max_samples = 200 if QUICK_TEST else None
-        
+        max_samples = inferred_sample_limit
+        sample_limited = max_samples is not None
+
         start = time.time()
         samples = load_musique("dev", max_samples=max_samples)
         passages = get_all_passages(samples, supporting_only=False)
         print(f"   Loaded {len(samples)} samples, {len(passages)} unique passages")
-        if QUICK_TEST:
-            print(f"   💡 Quick test mode (200 samples). Change QUICK_TEST=False for full dataset.")
+        if sample_limited:
+            print(f"   💡 Sample-limited mode ({max_samples} samples)")
+        else:
+            print(f"   💡 Full dataset mode")
         elapsed = time.time() - start
         print(f"   Time: {elapsed:.1f}s")
         
@@ -209,7 +238,13 @@ def main(graph_only=False):
         extractor = get_extractor("fastino/gliner2-base-v1")
         print(f"   ✓ Model ready")
         
-        results = process_passages_in_batches(passages, expanded_schema, extractor, batch_size=BATCH_SIZE)
+        results = process_passages_in_batches(
+            passages,
+            expanded_schema,
+            extractor,
+            batch_size=BATCH_SIZE,
+            cache_name=selected_cache_name,
+        )
         
         total_triples = sum(len(r.get('triples', [])) for r in results)
         total_entities = sum(len(r.get('entities', [])) for r in results)
@@ -258,8 +293,12 @@ def main(graph_only=False):
     
     # Save Graph
     print(f"\n💾 Saving graph...")
-    save_graph(G, GRAPH_PATH)
-    print(f"   Saved to: {GRAPH_PATH}")
+    save_graph(G, str(graph_output_path))
+    print(f"   Saved named graph to: {graph_output_path}")
+
+    if str(graph_output_path) != GRAPH_PATH:
+        shutil.copy(graph_output_path, GRAPH_PATH)
+        print(f"   Updated default alias: {GRAPH_PATH}")
     
     print("\n" + "=" * 70)
     print(" GRAPH REBUILD COMPLETE!")
@@ -271,19 +310,18 @@ def main(graph_only=False):
     print("✓ Progress reset (ready for next run)")
     
     if not graph_only:
-        if QUICK_TEST:
-            print("\n⚡ Quick test graph built (200 samples)")
-            print("   This is good for testing if fixes work")
-            print("\n   For FULL evaluation:")
-            print("   1. Edit rebuild_graph.py: Change QUICK_TEST = False")
-            print("   2. Run again: python rebuild_graph.py")
-            print("   3. Allow 15-30 min for full dataset processing")
-            print("   4. If interrupted: just run again to resume! ⏸️→▶️")
+        if inferred_sample_limit is not None:
+            print(f"\n⚡ Sample-limited graph built ({inferred_sample_limit} samples)")
+            print(f"   Triples saved as: triples_{selected_cache_name}.json")
+            print(f"   Graph saved as  : {graph_output_path.name}")
         else:
             print("\n✓ FULL dataset graph built!")
+            print(f"   Triples saved as: triples_{selected_cache_name}.json")
+            print(f"   Graph saved as  : {graph_output_path.name}")
             print("   Ready for production evaluation")
     else:
         print("\n✅ Graph built from cached triples!")
+        print(f"   Graph saved as  : {graph_output_path.name}")
         print("   Ready for evaluation")
     
     print("\nNext steps:")
@@ -292,22 +330,33 @@ def main(graph_only=False):
     print("3. If issues, restore backup: cp data/processed/kg.pkl.backup data/processed/kg.pkl")
 
 if __name__ == "__main__":
-    import sys
-    
-    if len(sys.argv) > 1:
-        if sys.argv[1] == "--reset":
-            reset_progress()
-            print("✓ Progress file cleared")
-            sys.exit(0)
-        elif sys.argv[1] == "--progress":
-            p = load_progress()
-            print(f"Last batch: {p['last_batch']}")
-            print(f"Passages: {p['total_passages_processed']}")
-            print(f"Timestamp: {p.get('timestamp', 'N/A')}")
-            sys.exit(0)
-        elif sys.argv[1] == "--graph-only":
-            print("\n⚡ GRAPH-ONLY MODE: Building from cached triples (no extraction)\n")
-            main(graph_only=True)
-            sys.exit(0)
-    
-    main()
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Rebuild the KG and save named triples caches.")
+    parser.add_argument("--reset", action="store_true", help="Clear the progress checkpoint and exit.")
+    parser.add_argument("--progress", action="store_true", help="Show the saved resume progress and exit.")
+    parser.add_argument("--graph-only", action="store_true", help="Build the graph directly from an existing triples cache.")
+    parser.add_argument("--samples", type=int, default=None, help="Limit the run to N MuSiQue samples (e.g. 300).")
+    parser.add_argument("--cache", type=str, default=None, help="Cache label to use, e.g. 'full' or '300'.")
+    args = parser.parse_args()
+
+    if args.reset:
+        reset_progress()
+        print("✓ Progress file cleared")
+        sys.exit(0)
+
+    if args.progress:
+        p = load_progress()
+        print(f"Last batch: {p['last_batch']}")
+        print(f"Passages: {p['total_passages_processed']}")
+        print(f"Timestamp: {p.get('timestamp', 'N/A')}")
+        sys.exit(0)
+
+    if args.graph_only:
+        print("\n⚡ GRAPH-ONLY MODE: Building from cached triples (no extraction)\n")
+
+    main(
+        graph_only=args.graph_only,
+        sample_limit=args.samples,
+        cache_name=args.cache,
+    )

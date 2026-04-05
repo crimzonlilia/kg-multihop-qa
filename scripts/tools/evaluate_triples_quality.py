@@ -7,15 +7,26 @@ Evaluate quality of extracted triples
 - Find potential noise patterns
 """
 
-import json
+import os
 from collections import Counter, defaultdict
 from datetime import datetime
 import re
 
-def load_triples(cache_path="data/cache/triples.json"):
-    """Load passages with triples"""
-    with open(cache_path, 'r', encoding='utf-8') as f:
-        passages = json.load(f)
+from src.cache_utils import load_triples_cache
+
+
+def load_triples(cache_path=None, cache_name=None):
+    """Load passages with triples from a path or cache alias like 'full'/'300'."""
+    cache_arg = str(cache_path) if cache_path is not None else ""
+    if cache_name is None and cache_arg and not cache_arg.endswith(".json") and "/" not in cache_arg and "\\" not in cache_arg:
+        cache_name = cache_arg
+        cache_path = None
+
+    if cache_path is None and cache_name is None:
+        cache_name = os.getenv("TRIPLES_CACHE_NAME", "full")
+
+    passages, _, resolved_path = load_triples_cache(cache_path=cache_path, cache_name=cache_name)
+    print(f"📄 Using triples cache: {resolved_path}")
     return passages
 
 def extract_all_triples(passages):

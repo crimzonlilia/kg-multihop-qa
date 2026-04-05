@@ -8,6 +8,8 @@ import hashlib
 from pathlib import Path
 from collections import defaultdict
 
+from ..cache_utils import infer_triples_cache_name, resolve_triples_cache_path
+
 logger = logging.getLogger(__name__)
 
 # Entity filtering settings
@@ -157,10 +159,11 @@ def _fingerprint_passages(passages: list[str]) -> str:
 def _build_cache_metadata(passages: list[str], relation_schema: dict,
                           entity_labels: list[str], batch_size: int,
                           use_dynamic: bool, k: int, threshold: float,
-                          extract_entities: bool) -> dict:
+                          extract_entities: bool,
+                          cache_name: str | int | None = None) -> dict:
     """Describe the current extraction run for safe cache reuse."""
     relation_keys = sorted((relation_schema or {}).keys())
-    return {
+    metadata = {
         "version": 2,
         "num_passages": len(passages),
         "fingerprint": _fingerprint_passages(passages),
@@ -173,6 +176,11 @@ def _build_cache_metadata(passages: list[str], relation_schema: dict,
         "extract_entities": extract_entities,
     }
 
+    if cache_name is not None:
+        metadata["cache_name"] = infer_triples_cache_name(cache_name)
+
+    return metadata
+
 
 def _cache_meta_matches(expected_meta: dict, actual_meta: dict) -> bool:
     """Check whether a saved cache matches the current run settings."""
@@ -183,13 +191,57 @@ def _cache_meta_matches(expected_meta: dict, actual_meta: dict) -> bool:
     return all(expected_meta.get(key) == actual_meta.get(key) for key in keys_to_compare)
 
 
-def load_cache(expected_meta: dict | None = None) -> list[dict] | None:
+def _normalize_passage_for_cache(passage: str) -> str:
+    """Normalize passage text for robust cache alignment."""
+    return " ".join(str(passage).split())
+
+
+def _align_cached_results_to_passages(requested_passages: list[str] | None,
+                                      cached_results: list[dict]) -> list[dict] | None:
+    """Realign cached results to the caller's passage order using exact passage text."""
+    if not requested_passages:
+        return None
+
+    by_passage_text = {}
+    for item in cached_results:
+        if not isinstance(item, dict):
+            continue
+        passage_key = _normalize_passage_for_cache(item.get("passage", ""))
+        if passage_key and passage_key not in by_passage_text:
+            by_passage_text[passage_key] = item
+
+    aligned_results = []
+    for passage in requested_passages:
+        passage_key = _normalize_passage_for_cache(passage)
+        cached_item = by_passage_text.get(passage_key)
+        if cached_item is None:
+            return None
+
+        aligned_results.append({
+            "passage": passage,
+            "entities": cached_item.get("entities", []),
+            "triples": cached_item.get("triples", []),
+        })
+
+    return aligned_results
+
+
+def load_cache(expected_meta: dict | None = None,
+               cache_name: str | int | None = None,
+               cache_path: str | Path | None = None,
+               requested_passages: list[str] | None = None) -> list[dict] | None:
     """Load triples from cache if available and compatible with the current run."""
-    if not TRIPLES_CACHE.exists():
+    try:
+        target_path = resolve_triples_cache_path(
+            cache_name=cache_name,
+            cache_path=cache_path,
+            must_exist=True,
+        )
+    except FileNotFoundError:
         return None
 
     try:
-        with open(TRIPLES_CACHE) as f:
+        with open(target_path, encoding="utf-8") as f:
             cached = json.load(f)
 
         # Backward-compatible with the old plain-list cache format.
@@ -197,46 +249,78 @@ def load_cache(expected_meta: dict | None = None) -> list[dict] | None:
             if expected_meta and len(cached) != expected_meta.get("num_passages", len(cached)):
                 logger.info("Cache exists but does not match current passage count; ignoring it")
                 return None
-            logger.info(f"✓ Loaded legacy cache: {len(cached)} passages")
+            logger.info(f"✓ Loaded legacy cache: {len(cached)} passages from {target_path.name}")
             return cached
 
         cached_meta = cached.get("meta", {})
         cached_results = cached.get("results", [])
         if expected_meta and not _cache_meta_matches(expected_meta, cached_meta):
+            aligned_results = _align_cached_results_to_passages(requested_passages, cached_results)
+            if aligned_results is not None:
+                logger.info(
+                    f"✓ Reused named cache via passage alignment: {len(aligned_results)} passages from {target_path.name}"
+                )
+                return aligned_results
+
             logger.info("Cache metadata mismatch; ignoring stale extraction cache")
             return None
 
-        logger.info(f"✓ Loaded cache: {len(cached_results)} passages")
+        logger.info(f"✓ Loaded cache: {len(cached_results)} passages from {target_path.name}")
         return cached_results
     except Exception as e:
         logger.warning(f"Could not load cache: {e}")
         return None
 
 
-def save_cache(results: list[dict], merge_existing: bool = False, metadata: dict | None = None):
+def save_cache(results: list[dict], merge_existing: bool = False,
+               metadata: dict | None = None,
+               cache_name: str | int | None = None,
+               cache_path: str | Path | None = None,
+               update_default_alias: bool = True):
     """Save extraction results to cache with run metadata for safe reuse."""
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    target_path = resolve_triples_cache_path(
+        cache_name=cache_name,
+        cache_path=cache_path,
+        must_exist=False,
+    )
 
     all_results = results
-    if merge_existing and TRIPLES_CACHE.exists():
+    if merge_existing and target_path.exists():
         try:
-            with open(TRIPLES_CACHE) as f:
+            with open(target_path, encoding="utf-8") as f:
                 existing_payload = json.load(f)
             existing_results = existing_payload if isinstance(existing_payload, list) else existing_payload.get("results", [])
             all_results = existing_results + results
         except Exception:
             all_results = results
 
+    payload_meta = dict(metadata or {"version": 2, "num_passages": len(all_results)})
+    payload_meta["num_passages"] = len(all_results)
+
+    merged_passages = [item.get("passage", "") for item in all_results if isinstance(item, dict)]
+    if merged_passages:
+        payload_meta["fingerprint"] = _fingerprint_passages(merged_passages)
+
+    if cache_name is not None:
+        payload_meta.setdefault("cache_name", infer_triples_cache_name(cache_name))
+
     payload = {
-        "meta": metadata or {"version": 2, "num_passages": len(all_results)},
+        "meta": payload_meta,
         "results": all_results,
     }
 
-    with open(TRIPLES_CACHE, "w") as f:
+    with open(target_path, "w", encoding="utf-8") as f:
         json.dump(payload, f)
 
-    total_triples = sum(len(r['triples']) for r in all_results)
-    logger.info(f"✓ Saved cache: {total_triples} triples from {len(all_results)} passages")
+    if update_default_alias and target_path != TRIPLES_CACHE:
+        with open(TRIPLES_CACHE, "w", encoding="utf-8") as f:
+            json.dump(payload, f)
+
+    total_triples = sum(len(r.get('triples', [])) for r in all_results)
+    logger.info(
+        f"✓ Saved cache: {total_triples} triples from {len(all_results)} passages -> {target_path.name}"
+    )
 
 
 def extract_triples_batch(passages: list[str],
@@ -251,7 +335,10 @@ def extract_triples_batch(passages: list[str],
                          deduplicate: bool = True,
                          extractor=None,
                          save_cache_to_disk: bool = True,
-                         extract_entities: bool = True) -> list[dict]:
+                         extract_entities: bool = True,
+                         cache_name: str | int | None = None,
+                         cache_path: str | Path | None = None,
+                         merge_existing_cache: bool = False) -> list[dict]:
     """
     Extract triples from passages using GLiNER2.
     
@@ -270,6 +357,9 @@ def extract_triples_batch(passages: list[str],
         save_cache_to_disk: Save results to cache file
         extract_entities: Run entity extraction pass for type filtering.
             Set False for a faster but slightly noisier extraction mode.
+        cache_name: Optional readable cache label such as 'full' or '300'.
+        cache_path: Optional explicit cache file path.
+        merge_existing_cache: Append to the existing cache file instead of overwriting.
     
     Returns: List of {'passage': str, 'entities': list, 'triples': list}
     """
@@ -295,9 +385,15 @@ def extract_triples_batch(passages: list[str],
         k=k,
         threshold=threshold,
         extract_entities=extract_entities,
+        cache_name=cache_name,
     )
     if not skip_cache:
-        cached = load_cache(expected_meta=cache_meta)
+        cached = load_cache(
+            expected_meta=cache_meta,
+            cache_name=cache_name,
+            cache_path=cache_path,
+            requested_passages=passages,
+        )
         if cached:
             return deduplicate_triples(cached) if deduplicate else cached
     
@@ -447,7 +543,13 @@ def extract_triples_batch(passages: list[str],
     
     # Save cache
     if save_cache_to_disk:
-        save_cache(results, merge_existing=False, metadata=cache_meta)
+        save_cache(
+            results,
+            merge_existing=merge_existing_cache,
+            metadata=cache_meta,
+            cache_name=cache_name,
+            cache_path=cache_path,
+        )
     
     # Deduplicate if requested
     if deduplicate:

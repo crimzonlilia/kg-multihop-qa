@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
@@ -9,15 +10,65 @@ from collections import defaultdict
 from src.graph.build_graph import load_graph, normalize
 
 # ── Embedding-based entity linker (module-level cache) ────────────────────────
+EMBED_MODEL_OPTIONS = {
+    "minilm": "sentence-transformers/all-MiniLM-L6-v2",
+    "bge-small": "BAAI/bge-small-en-v1.5",
+    "bge-base": "BAAI/bge-base-en-v1.5",
+    "e5-small": "intfloat/e5-small-v2",
+    "e5-base": "intfloat/e5-base-v2",
+}
+
 _embed_model = None
+_embed_model_name = EMBED_MODEL_OPTIONS.get(
+    os.getenv("KG_EMBED_MODEL", "minilm"),
+    os.getenv("KG_EMBED_MODEL", "sentence-transformers/all-MiniLM-L6-v2"),
+)
 _graph_node_embeddings = None   # (node_list, embedding_matrix)
+
+
+def set_embed_model(model_name_or_alias: str):
+    """Switch retrieval embedding model by alias or full HF model name."""
+    global _embed_model, _embed_model_name, _graph_node_embeddings
+    resolved = EMBED_MODEL_OPTIONS.get(model_name_or_alias, model_name_or_alias)
+    if resolved != _embed_model_name:
+        _embed_model_name = resolved
+        _embed_model = None
+        _graph_node_embeddings = None
+    return _embed_model_name
+
+
+def get_embed_model_name() -> str:
+    """Return the active retrieval embedding model name."""
+    return _embed_model_name
+
+
+def _prepare_texts_for_embedding(texts, text_type="passage"):
+    """Apply model-specific prompt formatting for retrieval embeddings."""
+    model_name = _embed_model_name.lower()
+    if "e5" in model_name:
+        prefix = "query: " if text_type == "query" else "passage: "
+        return [prefix + text for text in texts]
+    return list(texts)
+
+
+def _encode_texts(texts, text_type="passage", batch_size=256):
+    """Encode texts with the currently selected embedding model."""
+    model = _get_embed_model()
+    prepared = _prepare_texts_for_embedding(texts, text_type=text_type)
+    return model.encode(
+        prepared,
+        normalize_embeddings=True,
+        batch_size=batch_size,
+        show_progress_bar=False,
+    ).astype(np.float32)
+
 
 def _get_embed_model():
     """Lazy load SentenceTransformer (cached across calls)."""
     global _embed_model
     if _embed_model is None:
         from sentence_transformers import SentenceTransformer
-        _embed_model = SentenceTransformer("all-MiniLM-L6-v2")
+        _embed_model = SentenceTransformer(_embed_model_name)
     return _embed_model
 
 def build_fact_embeddings(triple_to_passages):
@@ -41,17 +92,11 @@ def build_fact_embeddings(triple_to_passages):
     if not facts:
         return [], np.zeros((0, 384), dtype=np.float32)
 
-    model = _get_embed_model()
     strings = [
         f"{s} {r.replace('_', ' ')} {o}"
         for s, r, o in facts
     ]
-    matrix = model.encode(
-        strings,
-        normalize_embeddings=True,
-        batch_size=256,
-        show_progress_bar=False,
-    ).astype(np.float32)
+    matrix = _encode_texts(strings, text_type="fact", batch_size=256)
     return facts, matrix
 
 
@@ -74,13 +119,11 @@ def build_passage_embeddings(passage_texts):
     if not pid_list:
         return [], np.zeros((0, 384), dtype=np.float32)
 
-    model = _get_embed_model()
-    matrix = model.encode(
+    matrix = _encode_texts(
         [passage_texts[pid] for pid in pid_list],
-        normalize_embeddings=True,
+        text_type="passage",
         batch_size=256,
-        show_progress_bar=False,
-    ).astype(np.float32)
+    )
     return pid_list, matrix
 
 
@@ -104,13 +147,11 @@ def add_synonymy_edges(G, threshold=0.85, batch_size=256):
     if len(node_list) < 2:
         return 0
 
-    model = _get_embed_model()
-    matrix = model.encode(
+    matrix = _encode_texts(
         node_list,
-        normalize_embeddings=True,
+        text_type="node",
         batch_size=batch_size,
-        show_progress_bar=False,
-    ).astype(np.float32)
+    )
 
     added = 0
     n = len(node_list)
@@ -140,11 +181,10 @@ def build_node_embeddings(G):
     Returns (node_list, normed_matrix).
     Call once per graph; pass result to extract_entities_from_question.
     """
-    model = _get_embed_model()
     node_list = list(G.nodes())
     if not node_list:
         return node_list, np.zeros((0, 384))
-    matrix = model.encode(node_list, normalize_embeddings=True, show_progress_bar=False, batch_size=256)
+    matrix = _encode_texts(node_list, text_type="node", batch_size=256)
     return node_list, matrix
 
 
@@ -523,8 +563,7 @@ def extract_entities_from_question(question, G, nlp=None, node_embeddings=None,
         node_list, matrix = [], np.zeros((0, 384))
 
     if len(node_list) > 0:
-        model = _get_embed_model()
-        q_vec = model.encode([question], normalize_embeddings=True, show_progress_bar=False)[0]
+        q_vec = _encode_texts([question], text_type="query", batch_size=32)[0]
         sims = matrix @ q_vec  # cosine similarity (both L2-normalized)
         top_indices = np.argsort(sims)[::-1][:top_k_embed * 3]
         added = 0
@@ -605,10 +644,7 @@ def rank_passages_by_ppr(
     if fact_embeddings is not None:
         fact_list, fact_matrix = fact_embeddings
         if len(fact_list) > 0:
-            model = _get_embed_model()
-            q_vec = model.encode(
-                [question], normalize_embeddings=True, show_progress_bar=False
-            )[0].astype(np.float32)
+            q_vec = _encode_texts([question], text_type="query", batch_size=32)[0]
             sims = fact_matrix @ q_vec          # (N,)
             top_idxs = np.argsort(sims)[::-1][:fact_top_k]
             graph_nodes = set(G.nodes())
@@ -627,10 +663,7 @@ def rank_passages_by_ppr(
         if passage_embeddings is not None:
             pid_list, pass_matrix = passage_embeddings
             if len(pid_list) > 0:
-                model = _get_embed_model()
-                q_v = model.encode(
-                    [question], normalize_embeddings=True, show_progress_bar=False
-                )[0].astype(np.float32)
+                q_v = _encode_texts([question], text_type="query", batch_size=32)[0]
                 scores = pass_matrix @ q_v
                 top_idxs = np.argsort(scores)[::-1][:top_k]
                 return [

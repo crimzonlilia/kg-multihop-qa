@@ -3,46 +3,63 @@
 Check triples cache - compare old vs new extracted triples
 """
 
+import argparse
 import json
+import os
+import sys
 from pathlib import Path
 from collections import Counter
 
-TRIPLES_CACHE = "data/cache/triples.json"
+from src.cache_utils import load_triples_cache
+from src.console_utils import configure_console_output
+
+configure_console_output()
+
+TRIPLES_CACHE = os.getenv("TRIPLES_CACHE_PATH")
+TRIPLES_CACHE_NAME = os.getenv("TRIPLES_CACHE_NAME", "full")
 SCHEMA_PATH = "src/schemas/relations.json"
 
 def load_json(path):
     with open(path) as f:
         return json.load(f)
 
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Inspect a named triples cache.")
+    parser.add_argument("--cache", default=TRIPLES_CACHE_NAME, help="Cache label to inspect, e.g. 3, 300, full.")
+    parser.add_argument("--path", default=TRIPLES_CACHE, help="Explicit path to a triples JSON file.")
+    return parser.parse_args()
+
+
 def main():
     print("=" * 70)
     print("CHECKING TRIPLES CACHE")
     print("=" * 70)
     
-    if not Path(TRIPLES_CACHE).exists():
-        print(f"\n❌ Cache not found: {TRIPLES_CACHE}")
-        return
-    
+    args = parse_args()
+
     # Load triples
     print(f"\n📄 Loading triples from cache...")
-    triples_data = load_json(TRIPLES_CACHE)
-    
+    try:
+        triples_data, _, resolved_cache = load_triples_cache(
+            cache_path=args.path,
+            cache_name=args.cache,
+        )
+    except FileNotFoundError:
+        missing_target = args.path or f"data/cache/triples_{args.cache}.json"
+        print(f"\n❌ Cache not found: {missing_target}")
+        return
+
+    print(f"   Using cache file: {resolved_cache}")
+
     # Flatten triples from passage-based structure
     all_triples = []
-    if isinstance(triples_data, dict) and 'triples' in triples_data:
-        all_triples = triples_data['triples']
-    elif isinstance(triples_data, list):
-        # List of passage objects - extract triples from each
-        for passage_obj in triples_data:
-            if isinstance(passage_obj, dict) and 'triples' in passage_obj:
-                all_triples.extend(passage_obj['triples'])
-            elif isinstance(passage_obj, dict):
-                # If it's already a triple dict, add it directly
-                if 'relation' in passage_obj and 'subject' in passage_obj and 'object' in passage_obj:
-                    all_triples.append(passage_obj)
-    else:
-        print("❌ Cannot parse triples format")
-        return
+    for passage_obj in triples_data:
+        if isinstance(passage_obj, dict) and 'triples' in passage_obj:
+            all_triples.extend(passage_obj['triples'])
+        elif isinstance(passage_obj, dict):
+            if 'relation' in passage_obj and 'subject' in passage_obj and 'object' in passage_obj:
+                all_triples.append(passage_obj)
     
     print(f"   Total triples: {len(all_triples)}")
     
@@ -102,4 +119,10 @@ def main():
     print("=" * 70)
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except BrokenPipeError:
+        try:
+            sys.stdout.close()
+        except Exception:
+            pass

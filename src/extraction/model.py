@@ -1,5 +1,6 @@
 """Model loading and caching for GLiNER2 and SentenceTransformer."""
 
+import os
 import logging
 import torch
 import sys
@@ -24,7 +25,7 @@ _EXTRACTOR_CACHE = None
 _EMBEDDER_CACHE = None
 
 MODEL_NAME = "fastino/gliner2-base-v1"
-EMBEDDER_MODEL = "all-MiniLM-L6-v2"
+EMBEDDER_MODEL = os.getenv("KG_SCHEMA_EMBED_MODEL", os.getenv("KG_EMBED_MODEL", "sentence-transformers/all-MiniLM-L6-v2"))
 
 # Optional imports with graceful fallback
 try:

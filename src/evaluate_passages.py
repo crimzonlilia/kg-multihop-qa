@@ -3,6 +3,7 @@ Evaluate QA using passage-based retrieval (HippoRAG style)
 Rank passages by entity coverage, check if answer is in passages
 """
 
+import os
 import sys, json, time, re
 from datetime import datetime
 from pathlib import Path
@@ -11,6 +12,8 @@ import statistics
 from difflib import SequenceMatcher
 sys.path.insert(0, ".")
 
+from src.console_utils import configure_console_output
+from src.cache_utils import resolve_graph_output_path
 from src.data.musique_loader import load_musique
 from src.graph.build_graph import load_graph, normalize
 from src.retrieval.passage_ranking import (
@@ -27,6 +30,10 @@ try:
 except:
     print("⚠️  Spacy model not found")
     nlp = None
+
+configure_console_output()
+
+TRIPLES_CACHE_NAME = os.getenv("TRIPLES_CACHE_NAME", "full")  # e.g. full, 300
 
 
 class ResultLogger:
@@ -162,11 +169,16 @@ if __name__ == "__main__":
     
     logger.log("Loading data...")
     samples = load_musique("dev", max_samples=200)
-    G = load_graph("data/processed/kg.pkl")
+    graph_path = resolve_graph_output_path(graph_name=TRIPLES_CACHE_NAME, must_exist=False)
+    if not graph_path.exists():
+        graph_path = resolve_graph_output_path(graph_name=None, must_exist=True)
+    G = load_graph(str(graph_path))
     
     # Load passage data
     logger.log("Loading passages...")
-    passages = load_passage_data("data/cache/triples.json")
+    logger.log(f"Triples cache: {TRIPLES_CACHE_NAME}")
+    logger.log(f"Graph file: {graph_path}")
+    passages = load_passage_data(TRIPLES_CACHE_NAME)
     triple_to_passages, passage_texts, passage_entities, entity_to_passages = build_triple_to_passage_map(passages)
     
     # Log graph and passage statistics

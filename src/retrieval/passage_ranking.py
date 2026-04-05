@@ -5,16 +5,21 @@ Passage-based retrieval ranking (HippoRAG style)
 - Return top-k passages for context/generation
 """
 
-import json
 from collections import defaultdict, Counter
 import networkx as nx
 from typing import List, Tuple, Set
 
+from src.cache_utils import load_triples_cache
 
-def load_passage_data(cache_path="data/cache/triples.json"):
-    """Load passages with entity and triple info"""
-    with open(cache_path, 'r', encoding='utf-8') as f:
-        passages = json.load(f)
+
+def load_passage_data(cache_path="data/cache/triples.json", cache_name=None):
+    """Load passages with entity and triple info from a path or cache alias."""
+    cache_arg = str(cache_path) if cache_path is not None else ""
+    if cache_name is None and cache_arg and not cache_arg.endswith(".json") and "/" not in cache_arg and "\\" not in cache_arg:
+        cache_name = cache_arg
+        cache_path = None
+
+    passages, _, _ = load_triples_cache(cache_path=cache_path, cache_name=cache_name)
     return passages
 
 
