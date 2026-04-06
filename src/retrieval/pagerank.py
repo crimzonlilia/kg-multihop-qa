@@ -8,6 +8,7 @@ import numpy as np
 import spacy
 from collections import defaultdict
 from src.graph.build_graph import load_graph, normalize
+from src.graph.graph_utils import get_entity_id
 
 # ── Embedding-based entity linker (module-level cache) ────────────────────────
 EMBED_MODEL_OPTIONS = {
@@ -143,7 +144,10 @@ def add_synonymy_edges(G, threshold=0.85, batch_size=256):
     Returns:
         Number of synonymy edges added
     """
-    node_list = list(G.nodes())
+    node_list = [
+        node for node, data in G.nodes(data=True)
+        if data.get("node_type") != "passage"
+    ]
     if len(node_list) < 2:
         return 0
 
@@ -177,15 +181,89 @@ def add_synonymy_edges(G, threshold=0.85, batch_size=256):
 
 def build_node_embeddings(G):
     """
-    Build (and cache) embedding matrix for all graph nodes.
-    Returns (node_list, normed_matrix).
-    Call once per graph; pass result to extract_entities_from_question.
+    Build (and cache) embedding matrix for entity-like graph nodes.
+    Passage nodes are skipped because their ids are structural anchors rather
+    than semantic entities we want to match from the question.
     """
-    node_list = list(G.nodes())
+    node_list = [
+        node for node, data in G.nodes(data=True)
+        if data.get("node_type") != "passage"
+    ]
     if not node_list:
-        return node_list, np.zeros((0, 384))
+        return node_list, np.zeros((0, 384), dtype=np.float32)
     matrix = _encode_texts(node_list, text_type="node", batch_size=256)
     return node_list, matrix
+
+
+def _build_ppr_personalization(G, query_entities, passage_node_weight=0.05):
+    """
+    Build a PageRank personalization vector with strong entity seeds and a
+    light prior over passage nodes so they can surface in the final ranking.
+    
+    CRITICAL FIX: query_entities are now entity IDs (hash format), not normalized strings.
+    """
+    if G.number_of_nodes() == 0:
+        return {}, []
+
+    # query_entities are already entity IDs from extract_entities_from_question
+    # Check they exist in graph (should be direct lookups)
+    valid_nodes = [
+        node for node in query_entities
+        if node in G and G.nodes[node].get("node_type") != "passage"
+    ]
+    if not valid_nodes:
+        return {}, []
+
+    personalization = {node: 0.0 for node in G.nodes()}
+    for node in valid_nodes:
+        personalization[node] += 1.0
+
+    passage_nodes = [
+        node for node, data in G.nodes(data=True)
+        if data.get("node_type") == "passage"
+    ]
+    if passage_node_weight > 0 and passage_nodes:
+        per_passage_weight = passage_node_weight / len(passage_nodes)
+        for node in passage_nodes:
+            personalization[node] += per_passage_weight
+
+    total = sum(personalization.values())
+    if total <= 0:
+        return {}, []
+
+    personalization = {
+        node: (value / total if value >= 0 and not np.isnan(value) else 0.0)
+        for node, value in personalization.items()
+    }
+    return personalization, valid_nodes
+
+
+def get_top_passages_from_ranked_nodes(G, ranked_nodes, top_k=10, passage_texts=None):
+    """
+    Pull passage nodes directly from a ranked node list.
+    Returns [(passage_id, passage_text, score), ...].
+    """
+    results = []
+    seen = set()
+
+    for node_id, score in ranked_nodes:
+        if node_id not in G:
+            continue
+        data = G.nodes[node_id]
+        if data.get("node_type") != "passage":
+            continue
+
+        passage_id = data.get("passage_id", str(node_id).replace("passage::", "", 1))
+        passage_text = data.get("text") or (passage_texts or {}).get(passage_id, "")
+        if not passage_text or passage_id in seen:
+            continue
+
+        seen.add(passage_id)
+        results.append((passage_id, passage_text, float(score)))
+        if len(results) >= top_k:
+            break
+
+    return results
 
 
 _RERANK_STOPWORDS = {
@@ -281,88 +359,47 @@ def _rerank_passage_candidates(
 
 def personalized_pagerank_hipporag(G, query_entities, top_k=10, damping=0.5, max_iter=20, tol=0.01):
     """
-    HippoRAG style Personalized PageRank
-    
-    Key improvements:
-    - damping=0.5 (more random jumps vs 0.85)
-    - reset_prob array like HippoRAG
-    - Clean NaN handling
-    - Fewer iterations (faster convergence)
-    
-    Args:
-        G: NetworkX graph
-        query_entities: list of seed entities
-        top_k: return top k nodes
-        damping: damping factor (0.5 = 50% continue, 50% jump to seed)
-        max_iter: max iterations
-        tol: convergence tolerance
-    
-    Returns:
-        list of (node_name, score) tuples ranked by score
+    HippoRAG style Personalized PageRank.
+
+    Uses strong entity seeds plus a small prior on passage nodes so the final
+    ranking can surface both bridge entities and supporting passages.
     """
     if G.number_of_nodes() == 0:
         return []
 
-    query_nodes = [normalize(e) for e in query_entities]
-    valid_nodes = [n for n in query_nodes if n in G]
-
+    reset_prob, valid_nodes = _build_ppr_personalization(
+        G, query_entities, passage_node_weight=0.05
+    )
     if not valid_nodes:
         return []
 
-    # ← Build reset probability array (HippoRAG style)
-    reset_prob = {}
-    base_score = 1.0 / len(valid_nodes)
-    
-    # Initialize all nodes to 0
-    for node in G.nodes():
-        reset_prob[node] = 0.0
-    
-    # Set seed nodes to base score
-    for node in valid_nodes:
-        reset_prob[node] = base_score
-    
-    # ← Clean NaN handling (like HippoRAG)
-    reset_prob = {k: (v if v >= 0 and not np.isnan(v) else 0.0) 
-                  for k, v in reset_prob.items()}
-
-    # PPR với damping thấp hơn (HippoRAG style)
     pr_scores = nx.pagerank(
         G,
-        alpha=damping,      # ← 0.5 thay vì 0.85
+        alpha=damping,
         personalization=reset_prob,
         weight="weight",
-        max_iter=max_iter,  # ← 20 iterations (faster)
+        max_iter=max_iter,
         tol=tol
     )
 
-    # Sort và return
     ranked = sorted(pr_scores.items(), key=lambda x: x[1], reverse=True)
     return ranked[:top_k]
 
 
 def personalized_pagerank(G, query_entities, top_k=10, alpha=0.85, entity_type_filter=None, max_iter=20, tol=0.01):
     """
-    Standard Personalized PageRank (keep for backward compatibility)
-    
-    Args:
-        max_iter: Giảm từ 100 → 20 iterations
-        tol: Tolerance - 0.01 thay vì 1e-6 (hội tụ nhanh hơn)
+    Standard Personalized PageRank (keep for backward compatibility).
     """
-    
+
     if G.number_of_nodes() == 0:
         return []
 
-    query_nodes = [normalize(e) for e in query_entities]
-    valid_nodes = [n for n in query_nodes if n in G]
-
+    personalization, valid_nodes = _build_ppr_personalization(
+        G, query_entities, passage_node_weight=0.05
+    )
     if not valid_nodes:
         return []
 
-    personalization = {node: 0.0 for node in G.nodes()}
-    for node in valid_nodes:
-        personalization[node] = 1.0 / len(valid_nodes)
-
-    # OPTIMIZE: Giảm iterations + tolerance
     pr_scores = nx.pagerank(
         G,
         alpha=alpha,
@@ -376,28 +413,34 @@ def personalized_pagerank(G, query_entities, top_k=10, alpha=0.85, entity_type_f
 
     if entity_type_filter:
         filtered = [
-            (n, s) for n, s in ranked 
+            (n, s) for n, s in ranked
             if G.nodes[n].get("entity_type", "unknown") in entity_type_filter
         ]
         return filtered[:top_k]
-    
+
     return ranked[:top_k]
 
 
 def personalized_pagerank_fast(G, query_entities, top_k=10, alpha=0.85, neighborhood_hops=3):
     """
-    Extract subgraph + seed neighbors of query entities
+    Run PPR on a localized K-hop neighborhood around the query entities.
+    Passage nodes receive a light prior and can still surface in the ranking.
     """
+    if G.number_of_nodes() == 0:
+        return []
+
     query_nodes = [normalize(e) for e in query_entities]
-    valid_nodes = [n for n in query_nodes if n in G]
-    
+    valid_nodes = [
+        n for n in query_nodes
+        if n in G and G.nodes[n].get("node_type") != "passage"
+    ]
+
     if not valid_nodes:
         return []
-    
-    # Get K-hop neighborhood
+
     nodes = set(valid_nodes)
     frontier = set(valid_nodes)
-    
+
     for _ in range(neighborhood_hops):
         next_frontier = set()
         for n in frontier:
@@ -405,62 +448,83 @@ def personalized_pagerank_fast(G, query_entities, top_k=10, alpha=0.85, neighbor
             next_frontier.update(G.predecessors(n))
         nodes.update(next_frontier)
         frontier = next_frontier
-    
+
     subgraph = G.subgraph(nodes)
-    
-    # FIXED: Seed query entities + their direct neighbors
+
     personalization = {node: 0.0 for node in subgraph.nodes()}
-    
-    # Seed query nodes (high weight)
     base_score = 1.0 / len(valid_nodes)
     for node in valid_nodes:
-        if node in subgraph:
+        if node in personalization:
             personalization[node] = base_score
-    
-    # Also seed neighbors of query nodes (lower weight)
+
     neighbor_boost = 0.3 * base_score
     for node in valid_nodes:
         if node in G:
-            # Get 1-hop neighbors
-            for neighbor in list(G.successors(node)) + list(G.predecessors(node)):
+            for neighbor in set(G.successors(node)) | set(G.predecessors(node)):
                 if neighbor in personalization:
                     personalization[neighbor] += neighbor_boost
-    
-    # Normalize
+
+    passage_nodes = [
+        node for node, data in subgraph.nodes(data=True)
+        if data.get("node_type") == "passage"
+    ]
+    if passage_nodes:
+        passage_boost = 0.15 * base_score / len(passage_nodes)
+        for node in passage_nodes:
+            personalization[node] += passage_boost
+
     total = sum(personalization.values())
     if total > 0:
-        personalization = {k: v/total for k, v in personalization.items()}
-    
+        personalization = {k: v / total for k, v in personalization.items()}
+
     pr_scores = nx.pagerank(
         subgraph,
         alpha=alpha,
         personalization=personalization,
         weight="weight",
-        max_iter=100,  # ← Increased from 20 for fragmented graphs
-        tol=0.05      # ← Relaxed from 0.01 for disconnected components
+        max_iter=100,
+        tol=0.05
     )
-    
+
     ranked = sorted(pr_scores.items(), key=lambda x: x[1], reverse=True)
     return ranked[:top_k]
 
 
-def get_subgraph(G, ranked_nodes, hops=2):
+def get_subgraph(G, ranked_nodes, hops=2, include_passages=False):
     """
-    Lấy subgraph quanh top nodes (để phục vụ multi-hop reasoning)
+    Lấy subgraph quanh top nodes để phục vụ multi-hop reasoning.
+
+    By default this keeps the triple/entity neighborhood and skips structural
+    passage anchor nodes, since passages are usually concatenated separately
+    into the final prompt.
     """
 
     nodes = set()
 
     for node, _ in ranked_nodes:
-        nodes.add(node)
+        if node not in G:
+            continue
 
-        # BFS mở rộng multi-hop
-        frontier = {node}
+        if include_passages or G.nodes[node].get("node_type") != "passage":
+            seed_nodes = {node}
+        else:
+            seed_nodes = {
+                nbr for nbr in (set(G.successors(node)) | set(G.predecessors(node)))
+                if G.nodes[nbr].get("node_type") != "passage"
+            }
+
+        nodes.update(seed_nodes)
+        frontier = set(seed_nodes)
         for _ in range(hops):
             next_frontier = set()
             for n in frontier:
                 next_frontier.update(G.successors(n))
                 next_frontier.update(G.predecessors(n))
+            if not include_passages:
+                next_frontier = {
+                    nbr for nbr in next_frontier
+                    if G.nodes[nbr].get("node_type") != "passage"
+                }
             nodes.update(next_frontier)
             frontier = next_frontier
 
@@ -470,25 +534,26 @@ def get_subgraph(G, ranked_nodes, hops=2):
 def extract_entities_from_question(question, G, nlp=None, node_embeddings=None,
                                    top_k_embed=5, embed_threshold=0.60):
     """
-    Extract entities from question and match to graph nodes.
+    Extract entities from question and match to graph nodes (hash-based entity IDs).
 
-    Strategy (HippoRAG-inspired):
-      Pass 1 – spaCy NER + exact/substring match against graph nodes (fast)
+    Strategy (HippoRAG-inspired, with entity ID fixes):
+      Pass 1 – spaCy NER + entity ID matching (hash-based lookup)
       Pass 2 – embedding similarity: embed the question, score against
                pre-built node embedding matrix, keep nodes above threshold.
-               This handles cases where NER fails (e.g. "the Green performer").
+
+    CRITICAL FIX: Returns entity IDs (entity-hash format) not normalized strings,
+    so they can be directly used in PPR seed set and lookups.
 
     Args:
         question: raw question string
-        G: NetworkX graph
+        G: NetworkX graph (nodes are entity IDs like "entity-abc123")
         nlp: pre-loaded spaCy model (loaded lazily if None)
         node_embeddings: (node_list, matrix) from build_node_embeddings(G).
-            Pass this to avoid re-embedding on every query.
         top_k_embed: max nodes to add from embedding search
         embed_threshold: cosine similarity threshold (0-1) for embedding match
 
     Returns:
-        list of matched graph node strings (normalized), up to 10 total
+        list of matched entity node IDs (hash format), up to 10 total
     """
     if nlp is None:
         try:
@@ -499,61 +564,68 @@ def extract_entities_from_question(question, G, nlp=None, node_embeddings=None,
             nlp = spacy.load("en_core_web_sm")
 
     doc = nlp(question)
-    graph_nodes = set(G.nodes())
-    entities = []
+    
+    # Get all entity nodes from graph (exclude passage nodes)
+    graph_entity_ids = {
+        node for node, data in G.nodes(data=True)
+        if data.get("node_type") != "passage"
+    }
+    
+    # Build reverse lookup: normalized_text -> entity_id
+    # This maps normalized entity text → entity ID (handles multiple surface forms → same ID)
+    norm_to_entity_id = {}
+    for ent_id in graph_entity_ids:
+        # Entity IDs are in format "entity-abcdef123..."
+        # Get the actual entity text from node data
+        raw_text = G.nodes[ent_id].get("raw_text", "")
+        if raw_text:
+            norm = normalize(raw_text)
+            if norm and not norm_to_entity_id.get(norm):
+                norm_to_entity_id[norm] = ent_id
 
-    def _try_match(ent_norm):
-        if ent_norm in graph_nodes:
-            return ent_norm
-        for node in graph_nodes:
-            node_norm = normalize(node)
-            if not node_norm or not ent_norm:
-                continue
-            overlap_node = len(ent_norm) / len(node_norm)
-            overlap_ent  = len(node_norm) / len(ent_norm)
-            if ent_norm in node_norm and overlap_node >= 0.6 and overlap_ent >= 0.6:
-                return node
-            if node_norm in ent_norm and overlap_ent >= 0.6 and overlap_node >= 0.6:
-                return node
-        return None
+    matched_entity_ids = []
 
     # ── Pass 1a: spaCy NER ────────────────────────────────────────────────────
     for ent in doc.ents:
-        ent_norm = normalize(ent.text.strip())
-        if len(ent_norm) < 3:
-            continue
-        matched = _try_match(ent_norm)
-        if matched and matched not in entities:
-            entities.append(matched)
+        ent_text = ent.text.strip()
+        ent_id = get_entity_id(ent_text)
+        
+        # Direct lookup: if this entity ID exists in graph
+        if ent_id in graph_entity_ids and ent_id not in matched_entity_ids:
+            matched_entity_ids.append(ent_id)
+        # Fallback: check normalized form
+        elif ent_id not in matched_entity_ids:
+            ent_norm = normalize(ent_text)
+            if len(ent_norm) >= 3 and ent_norm in norm_to_entity_id:
+                found_id = norm_to_entity_id[ent_norm]
+                if found_id not in matched_entity_ids:
+                    matched_entity_ids.append(found_id)
 
-    # ── Pass 1b: question-word substring scan ─────────────────────────────────
+    # ── Pass 1b: question-word substring scan (with hash matching) ──────────
     question_norm = normalize(question)
-    for node in graph_nodes:
-        if len(node) < 4:
-            continue
-        if node in question_norm and node not in entities:
-            entities.append(node)
+    for norm_text, ent_id in norm_to_entity_id.items():
+        if len(norm_text) >= 4 and norm_text in question_norm:
+            if ent_id not in matched_entity_ids:
+                matched_entity_ids.append(ent_id)
 
     # ── Pass 1c: noun chunks (if still empty) ────────────────────────────────
-    if not entities:
+    if not matched_entity_ids:
         for chunk in doc.noun_chunks:
-            chunk_norm = normalize(chunk.root.text.strip())
-            if len(chunk_norm) < 3:
-                continue
-            matched = _try_match(chunk_norm)
-            if matched and matched not in entities:
-                entities.append(matched)
+            chunk_text = chunk.root.text.strip()
+            chunk_id = get_entity_id(chunk_text)
+            if chunk_id in graph_entity_ids and chunk_id not in matched_entity_ids:
+                matched_entity_ids.append(chunk_id)
 
-    # ── Pass 1d: title-case tokens fallback ──────────────────────────────────
-    if not entities:
+    # ── Pass 1d: title-case tokens fallback ───────────────────────────────────
+    if not matched_entity_ids:
         for token in doc:
             if token.is_alpha and token.is_title and len(token.text) >= 3:
-                token_norm = normalize(token.text)
-                if token_norm in graph_nodes and token_norm not in entities:
-                    entities.append(token_norm)
+                token_id = get_entity_id(token.text)
+                if token_id in graph_entity_ids and token_id not in matched_entity_ids:
+                    matched_entity_ids.append(token_id)
 
     # ── Pass 2: embedding similarity (HippoRAG-style) ────────────────────────
-    # Always run this to enrich seed set; keeps top-k_embed nodes above threshold
+    # Pre-filter: only embed nodes that are entity IDs (not passages)
     if node_embeddings is not None:
         node_list, matrix = node_embeddings
     elif G.number_of_nodes() <= 5000:
@@ -572,12 +644,13 @@ def extract_entities_from_question(question, G, nlp=None, node_embeddings=None,
                 break
             if sims[idx] < embed_threshold:
                 break
-            node = node_list[idx]
-            if node not in entities:
-                entities.append(node)
+            node_id = node_list[idx]
+            if node_id not in matched_entity_ids:
+                matched_entity_ids.append(node_id)
                 added += 1
 
-    return list(dict.fromkeys(entities))[:10]  # preserve order, deduplicate
+    # Return up to 10 unique entity IDs (preserving order)
+    return list(dict.fromkeys(matched_entity_ids))[:10]
 
 
 def rank_passages_by_ppr(
@@ -634,13 +707,17 @@ def rank_passages_by_ppr(
     """
 
     # ── Seed extraction ─────────────────────────────────────────────────
-    # Always run NER-based extractor (fast, covers exact matches)
+    # Always run NER-based extractor (fast, covers exact matches)  
+    # Returns entity IDs in hash format from extract_entities_from_question
     query_entities = extract_entities_from_question(
         question, G, nlp, node_embeddings=node_embeddings
     )
     fact_passage_scores = defaultdict(float)
 
     # Augment seeds from fact-embedding similarity (HippoRAG core idea)
+    # CRITICAL: fact_list contains (s_norm, r, o_norm) tuples where s_norm, o_norm are NORMALIZED STRINGS
+    # Entity IDs are: entity_id = hash(normalize(raw_text))
+    # Since fact_list already has NORMALIZED strings, we can directly get entity IDs
     if fact_embeddings is not None:
         fact_list, fact_matrix = fact_embeddings
         if len(fact_list) > 0:
@@ -648,14 +725,24 @@ def rank_passages_by_ppr(
             sims = fact_matrix @ q_vec          # (N,)
             top_idxs = np.argsort(sims)[::-1][:fact_top_k]
             graph_nodes = set(G.nodes())
+            
             for idx in top_idxs:
                 if sims[idx] < fact_threshold:
                     break
-                s, r, o = fact_list[idx]
-                for node in (s, o):
-                    if node in graph_nodes and node not in query_entities:
-                        query_entities.append(node)
-                for pid in triple_to_passages.get((s, r, o), []):
+                s_norm, r, o_norm = fact_list[idx]
+                
+                # Convert normalized strings directly to entity IDs
+                # get_entity_id(normalized_string) = hash(normalized_string) 
+                # (since normalize(normalized_string) = normalized_string)
+                for norm_text in (s_norm, o_norm):
+                    if not norm_text or len(norm_text) < 3:
+                        continue
+                    entity_id = get_entity_id(norm_text)
+                    if entity_id in graph_nodes and entity_id not in query_entities:
+                        query_entities.append(entity_id)
+                
+                # Map fact passages with fact's normalized key
+                for pid in triple_to_passages.get((s_norm, r, o_norm), []):
                     fact_passage_scores[pid] = max(fact_passage_scores[pid], float(sims[idx]))
 
     def _dense_passage_fallback():
@@ -696,13 +783,28 @@ def rank_passages_by_ppr(
         return _dense_passage_fallback()
 
     # Map nodes to passages with lightweight score fusion.
+    # Prefer direct passage nodes if the graph contains them, then fuse with the
+    # legacy node_to_passages lookup for additional entity evidence.
     passage_max_scores = defaultdict(float)
     passage_sum_scores = defaultdict(float)
     node_hits_by_passage = defaultdict(set)
 
+    direct_passages = get_top_passages_from_ranked_nodes(
+        G,
+        ranked_nodes,
+        top_k=max(top_k * 5, 25),
+        passage_texts=passage_texts,
+    )
+    for pid, _, score in direct_passages:
+        passage_max_scores[pid] = max(passage_max_scores[pid], score)
+        passage_sum_scores[pid] += score
+        node_hits_by_passage[pid].add(f"passage::{pid}")
+
     if node_to_passages is not None:
         # Fast O(1) indexed lookup (preferred)
         for node, score in ranked_nodes:
+            if node in G and G.nodes[node].get("node_type") == "passage":
+                continue
             for pid in node_to_passages.get(node, set()):
                 passage_max_scores[pid] = max(passage_max_scores[pid], score)
                 passage_sum_scores[pid] += score
@@ -710,6 +812,8 @@ def rank_passages_by_ppr(
     else:
         # Fallback: O(n*m) linear scan over all triples
         for node, score in ranked_nodes:
+            if node in G and G.nodes[node].get("node_type") == "passage":
+                continue
             for (s, r, o), passage_ids in triple_to_passages.items():
                 if normalize(s) == node or normalize(o) == node:
                     for pid in passage_ids:

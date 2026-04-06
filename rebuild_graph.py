@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
 from src.data.musique_loader import load_musique, get_all_passages
 from src.extraction.relation_discovery import run_discovery
 from src.extraction import extract_triples_batch, get_extractor
-from src.graph.build_graph import build_graph, save_graph, graph_stats
+from src.graph.build_graph import build_graph, merge_graphs, save_graph, graph_stats
 from src.cache_utils import (
     build_graph_output_path,
     graph_backup_path_for,
@@ -90,7 +90,7 @@ def load_cached_triples(cache_name=None):
 
     cache_label = meta.get('cache_name') or infer_triples_cache_name(cache_name)
     print(f"   ✓ Loaded {len(all_triples)} triples from {len(data)} passages [{cache_label}]")
-    return all_triples, all_entities
+    return data, all_triples, all_entities
 
 def process_passages_in_batches(passages, relation_schema, extractor, batch_size=BATCH_SIZE, cache_name=None):
     """Extract triples in batches to avoid memory spike - REUSE model"""
@@ -194,7 +194,7 @@ def main(graph_only=False, sample_limit=None, cache_name=None):
             print(f"   ❌ No cached triples found for: triples_{selected_cache_name}.json")
             print(f"   Run full rebuild first: python rebuild_graph.py")
             return
-        all_triples, all_entities = cached_data
+        cached_results, all_triples, all_entities = cached_data
     else:
         # Load data
         print(f"\n📚 Loading data...")
@@ -272,15 +272,46 @@ def main(graph_only=False, sample_limit=None, cache_name=None):
     start = time.time()
     print(f"   Memory before: {get_memory_usage():.0f}MB")
     
-    if not graph_only:
-        # Clear results to free memory
-        del results
+    if graph_only:
         gc.collect()
+    else:
+        print("   Preserving per-passage results to add passage anchor nodes")
     
     print(f"   Memory after prep: {get_memory_usage():.0f}MB")
     
-    # Enable co-occurrence edges (optimized - max 10 per passage)
-    G = build_graph(all_triples, all_entities, score_threshold=0.0, add_cooccurrence_edges=True)
+    passage_records = results if 'results' in locals() else (cached_results if 'cached_results' in locals() else None)
+    passage_texts = passages if 'passages' in locals() else None
+
+    if passage_records is not None:
+        print("   Building per-passage graphs with passage nodes...")
+        passage_graphs = []
+        for idx, result in enumerate(passage_records):
+            passage_text = ""
+            if passage_texts is not None and idx < len(passage_texts):
+                passage_text = passage_texts[idx]
+            elif isinstance(result, dict):
+                passage_text = result.get('passage', '')
+
+            passage_graphs.append(
+                build_graph(
+                    result.get('triples', []),
+                    result.get('entities', []),
+                    score_threshold=0.0,
+                    add_cooccurrence_edges=True,
+                    passage_id=f"{selected_cache_name}_p{idx}",
+                    passage_text=passage_text,
+                )
+            )
+        G = merge_graphs(passage_graphs) if passage_graphs else build_graph([], [])
+        del passage_graphs
+        if 'results' in locals():
+            del results
+        if 'cached_results' in locals():
+            del cached_results
+        gc.collect()
+    else:
+        # Fallback path if only flattened triples are available
+        G = build_graph(all_triples, all_entities, score_threshold=0.0, add_cooccurrence_edges=True)
     
     print(f"\n   Graph Statistics:")
     stats = graph_stats(G)
@@ -336,6 +367,7 @@ if __name__ == "__main__":
     parser.add_argument("--reset", action="store_true", help="Clear the progress checkpoint and exit.")
     parser.add_argument("--progress", action="store_true", help="Show the saved resume progress and exit.")
     parser.add_argument("--graph-only", action="store_true", help="Build the graph directly from an existing triples cache.")
+    parser.add_argument("--force-extract", action="store_true", help="Ignore any existing triples cache and run discovery/extraction again.")
     parser.add_argument("--samples", type=int, default=None, help="Limit the run to N MuSiQue samples (e.g. 300).")
     parser.add_argument("--cache", type=str, default=None, help="Cache label to use, e.g. 'full' or '300'.")
     args = parser.parse_args()
@@ -352,11 +384,25 @@ if __name__ == "__main__":
         print(f"Timestamp: {p.get('timestamp', 'N/A')}")
         sys.exit(0)
 
-    if args.graph_only:
+    graph_only = args.graph_only
+    if not graph_only and args.cache and not args.force_extract:
+        cache_path = resolve_triples_cache_path(cache_name=args.cache, must_exist=False)
+        inferred_limit = infer_sample_limit_from_cache_name(args.cache)
+        cache_matches_request = (
+            args.samples is None
+            or inferred_limit is None
+            or inferred_limit == args.samples
+        )
+        if cache_path.exists() and cache_matches_request:
+            graph_only = True
+            print(f"\n♻️ Using existing triples cache: {cache_path.name}")
+            print("   Add --force-extract to regenerate triples from scratch.\n")
+
+    if graph_only:
         print("\n⚡ GRAPH-ONLY MODE: Building from cached triples (no extraction)\n")
 
     main(
-        graph_only=args.graph_only,
+        graph_only=graph_only,
         sample_limit=args.samples,
         cache_name=args.cache,
     )

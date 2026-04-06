@@ -30,6 +30,8 @@ e:/Gitcode/kg-multihop-qa/.venv/Scripts/python.exe rebuild_graph.py [--samples N
   Tên cache sẽ dùng/lưu, ví dụ: `3`, `300`, `500`, `full`
 - `--graph-only`  
   Không extract lại, chỉ build graph từ cache có sẵn
+- `--force-extract`  
+  Bỏ qua cache hiện có và extract lại từ đầu
 - `--progress`  
   Xem tiến độ resume hiện tại
 - `--reset`  
@@ -51,6 +53,8 @@ python rebuild_graph.py --samples 300 --cache 300
 ```powershell
 python rebuild_graph.py --samples 500 --cache 500
 ```
+
+> Nếu `triples_500.json` đã tồn tại thì `python rebuild_graph.py --cache 500` giờ sẽ tự **reuse cache** và không extract lại. Muốn ép chạy lại thì thêm `--force-extract`.
 
 #### Build full dataset
 ```powershell

@@ -3,6 +3,7 @@
 import re
 import pickle
 import logging
+import hashlib
 from pathlib import Path
 from collections import defaultdict
 import networkx as nx
@@ -32,17 +33,50 @@ def get_relation_schema():
 
 def normalize(text: str) -> str:
     """
-    Lightweight normalization:
+    Unified normalization for consistent entity representation across graph, cache, query:
+    - Convert diacritics to ASCII (ā → a, é → e, etc.)
     - lowercase
-    - trim whitespace
-    - compress multiple spaces
-    (keeps punctuation to preserve entity integrity)
+    - remove punctuation and special chars (keep alphanumeric + spaces)
+    - compress whitespace
+    
+    CRITICAL: This MUST be used everywhere (graph, passage, query)
     """
     if not text:
         return ""
+    
+    # Step 1: Normalize diacritics to ASCII
+    # Convert Unicode combining characters to ASCII equivalents
+    import unicodedata
+    text = unicodedata.normalize('NFKD', text)
+    text = text.encode('ascii', 'ignore').decode('ascii')
+    
+    # Step 2: Lowercase
     text = text.lower().strip()
-    text = re.sub(r"\s+", " ", text)
+    
+    # Step 3: Remove all non-alphanumeric except spaces
+    text = re.sub(r"[^a-z0-9\s]", "", text)
+    
+    # Step 4: Compress multiple spaces
+    text = re.sub(r"\s+", " ", text).strip()
     return text
+
+
+def get_entity_id(text: str) -> str:
+    """
+    Generate stable entity ID using normalized text + MD5 hash.
+    
+    One entity → one normalized form → one hash → used everywhere
+    
+    Args:
+        text: raw entity text (any case, punctuation)
+    
+    Returns:
+        str: "entity-{md5_hex}" format, always same for same normalized entity
+    """
+    norm = normalize(text)
+    if not norm:
+        return "entity-empty"
+    return "entity-" + hashlib.md5(norm.encode()).hexdigest()
 
 
 def normalize_relation_label(relation: str) -> str:

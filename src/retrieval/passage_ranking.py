@@ -10,6 +10,7 @@ import networkx as nx
 from typing import List, Tuple, Set
 
 from src.cache_utils import load_triples_cache
+from src.graph.graph_utils import normalize, get_entity_id
 
 
 def load_passage_data(cache_path="data/cache/triples.json", cache_name=None):
@@ -27,11 +28,13 @@ def build_triple_to_passage_map(passages):
     """
     Create mapping: (subject, predicate, object) -> passage_id
     Also returns passage text and entities mapping, plus entity-to-passages cache
+    
+    Uses hash-based entity IDs (get_entity_id) for consistent mapping
     """
     triple_to_passages = defaultdict(list)
     passage_texts = {}
     passage_entities = {}  # passage_id -> list of entity texts
-    entity_to_passages = defaultdict(set)  # entity (normalized) -> set of passage_ids (CACHE)
+    entity_to_passages = defaultdict(set)  # entity_id (hash) -> set of passage_ids
     
     for passage_id, passage_data in enumerate(passages):
         passage = passage_data.get('passage', '')
@@ -42,19 +45,20 @@ def build_triple_to_passage_map(passages):
         entity_texts = [e.get('text') for e in entities if 'text' in e]
         passage_entities[passage_id] = entity_texts
         
-        # Build entity cache for fast lookup
+        # Build entity cache using hash-based IDs (CRITICAL FIX)
         for entity_text in entity_texts:
-            entity_norm = entity_text.lower()
-            entity_to_passages[entity_norm].add(passage_id)
+            entity_id = get_entity_id(entity_text)
+            entity_to_passages[entity_id].add(passage_id)
         
         # Map each triple to this passage
         triples = passage_data.get('triples', [])
         for triple in triples:
             if isinstance(triple, dict) and 'subject' in triple:
+                # Create triple key using normalized text (for compatibility)
                 key = (
-                    triple.get('subject', '').lower(),
-                    triple.get('relation', '').lower(),
-                    triple.get('object', '').lower()
+                    normalize(triple.get('subject', '')),
+                    normalize(triple.get('relation', '')),
+                    normalize(triple.get('object', ''))
                 )
                 triple_to_passages[key].append(passage_id)
     

@@ -96,7 +96,9 @@ if __name__ == "__main__":
         if result["triples"]:
             G = build_graph(result["triples"], result["entities"],
                            add_reverse_edges=False,
-                           add_cooccurrence_edges=True)
+                           add_cooccurrence_edges=True,
+                           passage_id=f"passage_{i}",
+                           passage_text=passages[i])
             graphs.append(G)
         
         if (i + 1) % 20 == 0:

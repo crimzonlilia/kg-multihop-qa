@@ -6,9 +6,14 @@ from src.retrieval.pagerank import personalized_pagerank, get_subgraph
 def run_pipeline(texts, query_entities):
     graphs = []
 
-    for text in texts:
+    for idx, text in enumerate(texts):
         entities, triples = extract_information(text)
-        G = build_graph(triples, entities)
+        G = build_graph(
+            triples,
+            entities,
+            passage_id=f"passage_{idx}",
+            passage_text=text,
+        )
         graphs.append(G)
 
     final_graph = merge_graphs(graphs)
